@@ -20,4 +20,4 @@ This repository contains a high-performance data processing pipeline and a live 
 
 ---
 ### 👨‍💻 Developed by:
-**Sidad Ahmad** *Senior Cloud & Backend Architect | Certified Kubernetes Administrator (CKA)*
+**Sidad Ahmad** *Senior Cloud & Backend
