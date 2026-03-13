@@ -1,25 +1,21 @@
 import telebot
 import os
-import requests
 
-# کلیلێن پێدڤی
 TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
 bot = telebot.TeleBot(TOKEN)
 
 @bot.message_handler(func=lambda message: True)
-def get_ai_response(message):
+def reply_to_all(message):
     user_text = message.text
     
-    # ئەگەر سلاڤ کر، بلا ب ناڤێ وی بەرسڤ بدەت
     if "سلاف" in user_text or "سڵاو" in user_text:
-        bot.reply_to(message, "سلاف سیداد برا، فەرموو هەر پرسیارەکا تە هەبیت ئەز یێ ل ڤێرە مە.")
+        bot.reply_to(message, "سلاف سیداد برا! فەرموو، ئەز یێ ل ڤێرە مە دا هەر پرسیارەکا تە هەبیت بەرسڤ بدەم.")
+    elif "ناڤێ تە" in user_text:
+        bot.reply_to(message, "ناڤێ من بۆتێ سیدادە، ب شانازی ڤە!")
+    elif "باشی" in user_text:
+        bot.reply_to(message, "سوپاس بۆ خودێ، ئەگەر تو باش بی ئەز ژی یێ باشم.")
     else:
-        try:
-            # ل ڤێرە دێ پەیوەندیێ ب مەکینەکا زیرەک کەین دا بەرسڤێ بدەت
-            response = requests.get(f"https://api.simsimi.net/v2/?text={user_text}&lc=ku")
-            ai_message = response.json()['success']
-            bot.reply_to(message, ai_message)
-        except:
-            bot.reply_to(message, "ببورە سیداد برا، مێشکێ من نوکە یێ مژوولە، دووبارە پرسیار بکە.")
+        # ل شوینا خەتایێ، بلا هەر نامەیەکا تە بۆ تە ڤەگوهێزیتەڤە هەتا کلیلەکا زیرەکتر دابین دکەین
+        bot.reply_to(message, f"تە گۆت: {user_text} .. سیداد برا، ئەز هێشتا یێ فێری ڤێ پەیڤێ دبم، بەس تو هەر یا بێژە!")
 
 bot.polling()
