@@ -1,33 +1,56 @@
 import streamlit as st
+import pandas as pd
 
-# Setup page style
-st.set_page_config(page_title="Sidad Tech Profile", layout="wide")
+# Page Config
+st.set_page_config(page_title="Sidad | AI & Engineering Hub", layout="wide")
 
+# Custom CSS for Dark Theme
 st.markdown("""
     <style>
     .main { background-color: #0b1e2d; color: white; }
     .stMetric { background-color: #112a40; border: 1px solid #1e3a5f; padding: 20px; border-radius: 12px; }
     h1 { color: #4db8ff; border-bottom: 2px solid #4db8ff; }
-    .footer-bar { background-color: #081621; padding: 10px; border-radius: 8px; text-align: center; color: #4db8ff; font-weight: bold; }
     </style>
     """, unsafe_allow_html=True)
 
-# Header (Matching your image)
+# --- SECTION 1: TECHNICAL PROFILE ---
 st.title("TECHNICAL ENGINEERING PROFILE 🚀")
-col_info1, col_info2 = st.columns([2,1])
-with col_info1:
-    st.write("**Candidate:** Sidad Ahmad")
-    st.write("**Expertise:** Python (FastAPI, Async), SQL, AI Integration")
-with col_info2:
+col_a, col_b = st.columns([2,1])
+with col_a:
+    st.write("**Candidate:** Sidad Ahmad | **Expertise:** Python, SQL, AI")
+with col_b:
     st.write("**Location:** Zakho / Remote")
 
-st.markdown("<h2 style='text-align: center; color: #4db8ff;'>高性能 Data & AI Dashboard 💻</h2>", unsafe_allow_html=True)
+# Metrics (Like your image)
+c1, c2, c3 = st.columns(3)
+c1.metric("API LATENCY", "45ms", "-10ms")
+c2.metric("DB THROUGHPUT", "1.2k req/s", "15%")
+c3.metric("AI ACCURACY", "98.4%", "0.2%")
 
-# Metrics Section
-col1, col2, col3 = st.columns(3)
-col1.metric("API LATENCY", "45ms", "-10ms")
-col2.metric("DB THROUGHPUT", "1.2k req/s", "15%")
-col3.metric("AI ACCURACY", "98.4%", "0.2%")
+st.markdown("---")
 
-st.markdown('<div class="footer-bar">📊 System Load Analysis 📊</div>', unsafe_allow_html=True)
-st.caption("<p style='text-align: center;'>Dashboard is Live and Fully Functional.</p>", unsafe_allow_html=True)
+# --- SECTION 2: AI CHATBOT INTERFACE ---
+st.subheader("💬 AI Assistant (Powered by GPT)")
+
+# Input for API Key (Safety First)
+with st.expander("🔐 Configure AI Settings"):
+    openai_api_key = st.text_input("OpenAI API Key", type="password")
+
+if "messages" not in st.session_state:
+    st.session_state["messages"] = [{"role": "assistant", "content": "Hello Sidad! How can I help you with your data today?"}]
+
+for msg in st.session_state.messages:
+    st.chat_message(msg["role"]).write(msg["content"])
+
+if prompt := st.chat_input():
+    if not openai_api_key:
+        st.info("Please add your OpenAI API key to continue.")
+        st.stop()
+    
+    st.session_state.messages.append({"role": "user", "content": prompt})
+    st.chat_message("user").write(prompt)
+    
+    # Here you would call OpenAI API - for now, we show a mock response
+    response = f"Sidad, this is a simulated response to: {prompt}. (Connect your API key for real AI)"
+    st.session_state.messages.append({"role": "assistant", "content": response})
+    st.chat_message("assistant").write(response)
