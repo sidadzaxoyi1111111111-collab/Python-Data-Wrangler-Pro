@@ -1,11 +1,8 @@
 import streamlit as st
 from google import genai
-import os
-from dotenv import load_dotenv
 
-# بارکرنا کلیلێن نهێنی ژ فایلا .env
-load_dotenv()
-GEMINI_KEY = os.getenv('GEMINI_KEY')
+# کلیلێن تە یێن تایبەت (Gemini Key)
+GEMINI_KEY = 'AIzaSyCHpLbDrdwt8QDB5e-n7aZBvaTh0pwZws4'
 
 # ڕێکخستنا لاپەرێ وێبێ
 st.set_page_config(page_title="Sidad AI Dashboard", page_icon="🤖")
@@ -34,13 +31,13 @@ if prompt := st.chat_input("چی ل مێشکێ تە دایە؟"):
     with st.chat_message("user"):
         st.markdown(prompt)
 
-    # پەیوەندی ل گەل Gemini API
+    # پەیوەندی ل گەل Gemini API ب کلیلێن تە
     try:
         client = genai.Client(api_key=GEMINI_KEY)
         with st.chat_message("assistant"):
             response = client.models.generate_content(
                 model=model_name,
-                contents=f"تۆ یاریدەدەرێکی زیرەکی، بە زمانی کوردی بادینی وەڵام بدەوە: {prompt}"
+                contents=f"تۆ یاریدەدەرێکی زیرەکی، بە زمانی کوردی بادینی وەڵامی سیداد بدەوە: {prompt}"
             )
             st.markdown(response.text)
             st.session_state.messages.append({"role": "assistant", "content": response.text})
