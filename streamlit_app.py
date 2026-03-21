@@ -3,16 +3,19 @@ import requests
 import json
 
 # 1. Setup Page
-st.set_page_config(page_title="Sidad AI Together", page_icon="⚡", layout="centered")
+st.set_page_config(page_title="Sidad AI Together", page_icon="⚡")
 st.title("⚡ Sidad AI - Together Edition")
 st.markdown("---")
 
 # 2. API Key from Secrets
-api_key = st.secrets.get("GEMINI_KEY")
+raw_api_key = st.secrets.get("GEMINI_KEY")
 
-if not api_key:
+if not raw_api_key:
     st.error("⚠️ کلیل ل ناڤ Secrets نەهاتییە دیتن!")
 else:
+    # پشکنینا کلیلێ دا چو نڤیسینێن زێدە تێدا نەمینن
+    api_key = raw_api_key.strip()
+
     if "messages" not in st.session_state:
         st.session_state.messages = []
         welcome = "سلاڤ! خێرهاتی بۆ ڤێرژنا پڕۆفیشناڵ یا **Sidad AI**. ئەز نوکە ب مێشکێ **Together AI** دئاخڤم."
@@ -25,9 +28,8 @@ else:
     # 3. ڕێنماییا بادینی (Professional Badini Logic)
     badini_logic = (
         "You are Sidad AI, a highly professional AI assistant created by Sidad Ahmad from Zakho. "
-        "STRICT LANGUAGE RULES: Speak ONLY in Badini Kurdish (Zakho/Duhok dialect). "
-        "NEVER use Sorani words like 'دەکەم', 'دەچم', 'چۆنیت', 'یارمەتی'. "
-        "ALWAYS use Badini words: 'دکەم', 'دچم', 'چەوانی', 'دڤێت', 'سوپاس', 'هاریکاری'. "
+        "STRICT LANGUAGE RULES: Speak ONLY in Badini Kurdish (Zakho dialect). "
+        "NEVER use Sorani words. Use 'دکەم', 'دچم', 'چەوانی', 'دڤێت', 'سوپاس'. "
         "If the user speaks English, respond in professional academic English."
     )
 
@@ -39,6 +41,8 @@ else:
         with st.chat_message("assistant"):
             try:
                 url = "https://api.together.xyz/v1/chat/completions"
+                
+                # ئامادەکرنا داتایان
                 payload = {
                     "model": "meta-llama/Llama-3.3-70B-Instruct-Turbo", 
                     "messages": [
@@ -48,6 +52,7 @@ else:
                     "temperature": 0.4,
                     "max_tokens": 1024
                 }
+                
                 headers = {
                     "Authorization": f"Bearer {api_key}",
                     "Content-Type": "application/json"
@@ -61,7 +66,8 @@ else:
                     st.markdown(response_text)
                     st.session_state.messages.append({"role": "assistant", "content": response_text})
                 else:
-                    st.error(f"Together AI Error: {response.text}")
+                    # نیشاندانا خەتایێ ب ڕوونی
+                    st.error(f"Together AI Error: {response.status_code} - {response.text}")
 
             except Exception as e:
                 st.error(f"Connection Error: {e}")
