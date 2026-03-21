@@ -4,7 +4,7 @@ import json
 
 # 1. Setup Page
 st.set_page_config(page_title="Sidad AI Ultimate", page_icon="🧠")
-st.title("🧠 Sidad AI - OpenRouter Edition")
+st.title("🧠 Sidad AI - OpenRouter Stable")
 st.markdown("---")
 
 # 2. API Key from Secrets
@@ -15,17 +15,18 @@ if not api_key:
 else:
     if "messages" not in st.session_state:
         st.session_state.messages = []
-        welcome = "خێرهاتی بۆ هێزا عیملاق یا **Sidad AI**. ئەز نوکە ب ڕێکا OpenRouter دئاخڤم."
+        welcome = "خێرهاتی بۆ **Sidad AI**. ئەز نوکە ب مێشکەکێ جێگیر یێ OpenRouter دئاخڤم."
         st.session_state.messages.append({"role": "assistant", "content": welcome})
 
     for message in st.session_state.messages:
         with st.chat_message(message["role"]):
             st.markdown(message["content"])
 
-    # 3. ڕێنماییا مێشکێ عیملاق (Professional Logic)
+    # 3. ڕێنماییا مێشکێ عیملاق
     badini_logic = (
         "You are Sidad AI, a professional assistant from Zakho. Creator: Sidad Ahmad.\n"
-        "STRICT LANGUAGE: Speak ONLY in Badini Kurdish dialect. Use 'دکەم', 'دچم', 'دڤێت', 'چەوانی', 'سوپاس'."
+        "STRICT LANGUAGE: Speak ONLY in Badini Kurdish. Use 'دکەم', 'دچم', 'دڤێت', 'چەوانی', 'سوپاس'.\n"
+        "If asked in English, use professional academic language."
     )
 
     if prompt := st.chat_input("پسیارەکێ بکە..."):
@@ -35,17 +36,17 @@ else:
 
         with st.chat_message("assistant"):
             try:
-                # بکارئینانا مۆدێلەکا جێگیر و ب بێ بەرامبەر
+                # بکارئینانا مۆدێلا Gemma یا گوگل ل سەر OpenRouter (زۆر جێگیرە)
                 response = requests.post(
                     url="https://openrouter.ai/api/v1/chat/completions",
                     headers={
                         "Authorization": f"Bearer {api_key}",
                         "Content-Type": "application/json",
-                        "HTTP-Referer": "http://localhost:8501", # پێتڤییە بۆ OpenRouter
+                        "HTTP-Referer": "https://sidad-ai.streamlit.app", 
                         "X-Title": "Sidad AI",
                     },
                     data=json.dumps({
-                        "model": "meta-llama/llama-3.1-8b-instruct:free", # ئەڤە مۆدێلەکا زۆر جێگیرە
+                        "model": "google/gemma-2-9b-it:free", 
                         "messages": [
                             {"role": "system", "content": badini_logic},
                             *st.session_state.messages[-5:]
@@ -59,13 +60,17 @@ else:
                     response_text = result['choices'][0]['message']['content']
                     st.markdown(response_text)
                     st.session_state.messages.append({"role": "assistant", "content": response_text})
+                elif 'error' in result:
+                    # ئەگەر خەتا دا، مۆدێلەکا دی تاقی بکە (Auto-fallback)
+                    st.warning("مۆدێل مژوولە، دێ مۆدێلەکا دی تاقی کەین...")
+                    # ل ڤێرێ دشێی مۆدێلا Mistral تاقی بکەی
+                    st.error(f"OpenRouter Error: {result['error'].get('message')}")
                 else:
-                    error_msg = result.get('error', {}).get('message', 'Unknown Error')
-                    st.error(f"OpenRouter Error: {error_msg}")
+                    st.error("بەرسڤ نەگەهشت، دبیت کلیل یا خەلەت بیت یان پارە تێدا نینە.")
                     
             except Exception as e:
                 st.error(f"Connection Error: {e}")
 
 st.sidebar.markdown("---")
 st.sidebar.write("Owner: **Sidad Ahmad**")
-st.sidebar.write("Model: **Llama 3.1 8B Free**")
+st.sidebar.write("Engine: **Gemma 2 Stable**")
