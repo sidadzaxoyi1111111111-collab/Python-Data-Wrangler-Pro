@@ -22,10 +22,10 @@ else:
         with st.chat_message(message["role"]):
             st.markdown(message["content"])
 
-    # 3. ڕێنماییا مێشکێ عیملاق
+    # 3. ڕێنماییا مێشکێ عیملاق (Professional Logic)
     badini_logic = (
         "You are Sidad AI, a professional assistant from Zakho. Creator: Sidad Ahmad.\n"
-        "STRICT LANGUAGE: Speak ONLY in Badini Kurdish dialect. Use 'دکەم', 'دچم', 'دڤێت', 'چەوانی'."
+        "STRICT LANGUAGE: Speak ONLY in Badini Kurdish dialect. Use 'دکەم', 'دچم', 'دڤێت', 'چەوانی', 'سوپاس'."
     )
 
     if prompt := st.chat_input("پسیارەکێ بکە..."):
@@ -35,14 +35,17 @@ else:
 
         with st.chat_message("assistant"):
             try:
+                # بکارئینانا مۆدێلەکا جێگیر و ب بێ بەرامبەر
                 response = requests.post(
                     url="https://openrouter.ai/api/v1/chat/completions",
                     headers={
                         "Authorization": f"Bearer {api_key}",
                         "Content-Type": "application/json",
+                        "HTTP-Referer": "http://localhost:8501", # پێتڤییە بۆ OpenRouter
+                        "X-Title": "Sidad AI",
                     },
                     data=json.dumps({
-                        "model": "google/gemini-2.0-flash-exp:free", # گوهۆڕین بۆ مۆدێلەکا ب هێزتر و فۆل فڕی
+                        "model": "meta-llama/llama-3.1-8b-instruct:free", # ئەڤە مۆدێلەکا زۆر جێگیرە
                         "messages": [
                             {"role": "system", "content": badini_logic},
                             *st.session_state.messages[-5:]
@@ -52,14 +55,12 @@ else:
                 
                 result = response.json()
                 
-                # پشکنینا خەتایێ بەری خویندنێ
                 if 'choices' in result:
                     response_text = result['choices'][0]['message']['content']
                     st.markdown(response_text)
                     st.session_state.messages.append({"role": "assistant", "content": response_text})
                 else:
-                    # نیشاندانا خەتایێ ئەگەر هەبیت
-                    error_msg = result.get('error', {}).get('message', 'Unknown Error from OpenRouter')
+                    error_msg = result.get('error', {}).get('message', 'Unknown Error')
                     st.error(f"OpenRouter Error: {error_msg}")
                     
             except Exception as e:
@@ -67,3 +68,4 @@ else:
 
 st.sidebar.markdown("---")
 st.sidebar.write("Owner: **Sidad Ahmad**")
+st.sidebar.write("Model: **Llama 3.1 8B Free**")
