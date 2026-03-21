@@ -3,7 +3,7 @@ import requests
 import json
 
 # 1. Setup Page
-st.set_page_config(page_title="Sidad AI Together", page_icon="⚡")
+st.set_page_config(page_title="Sidad AI Together", page_icon="⚡", layout="centered")
 st.title("⚡ Sidad AI - Together Edition")
 st.markdown("---")
 
@@ -11,23 +11,23 @@ st.markdown("---")
 api_key = st.secrets.get("GEMINI_KEY")
 
 if not api_key:
-    st.error("⚠️ API Key is missing in Secrets!")
+    st.error("⚠️ کلیل ل ناڤ Secrets نەهاتییە دیتن!")
 else:
     if "messages" not in st.session_state:
         st.session_state.messages = []
-        welcome = "سلاڤ! خێرهاتی بۆ ڤێرژنا پڕۆفیشنال یا **Sidad AI**. ئەز نوکە ب مێشکەکێ Together AI دئاخڤم."
+        welcome = "سلاڤ! خێرهاتی بۆ ڤێرژنا پڕۆفیشناڵ یا **Sidad AI**. ئەز نوکە ب مێشکێ **Together AI** دئاخڤم."
         st.session_state.messages.append({"role": "assistant", "content": welcome})
 
     for message in st.session_state.messages:
         with st.chat_message(message["role"]):
             st.markdown(message["content"])
 
-    # 3. ڕێنماییا مێشکێ عیملاق (Professional Badini)
+    # 3. ڕێنماییا بادینی (Professional Badini Logic)
     badini_logic = (
-        "You are Sidad AI, a highly professional AI assistant created by Sidad Ahmad. "
+        "You are Sidad AI, a highly professional AI assistant created by Sidad Ahmad from Zakho. "
         "STRICT LANGUAGE RULES: Speak ONLY in Badini Kurdish (Zakho/Duhok dialect). "
-        "NEVER use Sorani words like 'دەکەم', 'دەچم', 'چۆنیت'. "
-        "Use 'دکەم', 'دچم', 'چەوانی', 'دڤێت', 'سوپاس'. "
+        "NEVER use Sorani words like 'دەکەم', 'دەچم', 'چۆنیت', 'یارمەتی'. "
+        "ALWAYS use Badini words: 'دکەم', 'دچم', 'چەوانی', 'دڤێت', 'سوپاس', 'هاریکاری'. "
         "If the user speaks English, respond in professional academic English."
     )
 
@@ -38,7 +38,6 @@ else:
 
         with st.chat_message("assistant"):
             try:
-                # بانگکرنا Together AI API
                 url = "https://api.together.xyz/v1/chat/completions"
                 payload = {
                     "model": "meta-llama/Llama-3.3-70B-Instruct-Turbo", 
@@ -69,4 +68,4 @@ else:
 
 st.sidebar.markdown("---")
 st.sidebar.write("Owner: **Sidad Ahmad**")
-st.sidebar.write("Engine: **Together AI (Llama 3.3)**")
+st.sidebar.write("Engine: **Together AI**")
