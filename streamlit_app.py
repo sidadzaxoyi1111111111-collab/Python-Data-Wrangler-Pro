@@ -1,33 +1,40 @@
 import streamlit as st
-from google import genai
+import google.generativeai as genai
 import os
 
-# وەرگرتنا کلیلێ ب شێوەیەکێ پاراستی
-GEMINI_KEY = os.getenv('GEMINI_KEY')
+# Setup Page
+st.set_page_config(page_title="Sidad AI - Gemini 1.5", page_icon="🤖")
+st.title("🤖 Sidad AI - Gemini 1.5 Flash")
 
-st.set_page_config(page_title="Sidad AI", page_icon="🤖")
-st.title("🤖 Sidad AI - Gemini 2.0")
+# Get API Key from Secrets
+api_key = st.secrets.get("GEMINI_KEY")
 
-if "messages" not in st.session_state:
-    st.session_state.messages = []
+if not api_key:
+    st.error("Error: API Key not found in Streamlit Secrets!")
+else:
+    genai.configure(api_key=api_key)
+    
+    # Use Gemini 1.5 Flash for better stability
+    model = genai.GenerativeModel('gemini-1.5-flash')
 
-for message in st.session_state.messages:
-    with st.chat_message(message["role"]):
-        st.markdown(message["content"])
+    if "messages" not in st.session_state:
+        st.session_state.messages = []
 
-if prompt := st.chat_input("پسیارەکێ بکە..."):
-    st.session_state.messages.append({"role": "user", "content": prompt})
-    with st.chat_message("user"):
-        st.markdown(prompt)
+    for message in st.session_state.messages:
+        with st.chat_message(message["role"]):
+            st.markdown(message["content"])
 
-    try:
-        client = genai.Client(api_key=GEMINI_KEY)
-        response = client.models.generate_content(
-            model="gemini-2.0-flash",
-            contents=f"تۆ یاریدەدەرێکی زیرەکی، بە زمانی کوردی بادینی وەڵامی ئەمە بدەوە: {prompt}"
-        )
+    if prompt := st.chat_input("...پسیارەکێ بکە"):
+        st.session_state.messages.append({"role": "user", "content": prompt})
+        with st.chat_message("user"):
+            st.markdown(prompt)
+
         with st.chat_message("assistant"):
-            st.markdown(response.text)
-            st.session_state.messages.append({"role": "assistant", "content": response.text})
-    except Exception as e:
-        st.error(f"Error: {e}")
+            try:
+                # System instruction for Badini dialect
+                full_prompt = f"بەرسڤێ ب زمانی کوردی بادینی بدە: {prompt}"
+                response = model.generate_content(full_prompt)
+                st.markdown(response.text)
+                st.session_state.messages.append({"role": "assistant", "content": response.text})
+            except Exception as e:
+                st.error(f"Error: {e}")
