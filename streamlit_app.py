@@ -3,9 +3,9 @@ from groq import Groq
 
 # 1. Setup Page
 st.set_page_config(page_title="Sidad AI - Badini", page_icon="🤖")
-st.title("🤖 Sidad AI (Badini Edition)")
+st.title("🤖 Sidad AI (Badini Mode)")
 
-# 2. API Key from Secrets
+# 2. API Key
 api_key = st.secrets.get("GEMINI_KEY")
 
 if not api_key:
@@ -16,22 +16,19 @@ else:
     if "messages" not in st.session_state:
         st.session_state.messages = []
 
-    # نیشاندانا نامەیێن کۆن
     for message in st.session_state.messages:
         with st.chat_message(message["role"]):
             st.markdown(message["content"])
 
-    # 3. ڕێنماییا فول بادینی (System Prompt)
-    # ئەڤە ئەو پشکە یا تو دبێژیێ 'فول بادینی'
+    # 3. ڕێنماییا زۆر توند بۆ بادینی (Strict Badini Policy)
     badini_instructions = (
-        "تۆ Sidad AI، یاریدەدەره‌كێ زیرەکی و ب تنێ ب زارۆکێ بادینی (دەڤەرا بەهدینان - دهۆک، زاخۆ، ئامێدی، ئاکرێ) دئاخڤی. "
-        "قەدەغەیە ب سۆرانی باخڤی. پەیڤێن (چۆنیت، دەکەم، دەچم، ناخۆشە) بکار نەئینە. "
-        "ل شوونا وان ئەڤان پەیڤان بکار بینە: (چەوانی، دکەم، دچم، نەخۆشە، چێدبیت، هەیە، نینە، من دڤێت). "
-        "هەمیشە بێژە 'سلاڤ'، 'کەرەم بکە'، 'ل خزمەتا تەمە'. "
-        "ئەگەر پسیار ب ئینگلیزی یان عەرەبی ژی هات، تو هەر ب بادینی بەرسڤێ بدە."
+        "Role: You are Sidad AI, a native speaker of the Badini dialect from Zakho/Duhok. "
+        "CRITICAL RULE: NEVER use Sorani Kurdish words like (چۆنیت، دەکەم، دەچم، ئەکەم، دەڕۆم، بووم، سپاس، تکایە). "
+        "INSTEAD, ALWAYS use Badini words: (چەوانی، دکەم، دچم، من دڤێت، سوپاس، کەرەم بکە، چێدبیت، نینە). "
+        "Your language must be 100% Badini. If the user says 'سڵاو', you must reply with 'سلاڤ، چەوانی، باشی؟'. "
+        "Do not use 'هیوادارم'، use 'هیڤیدارم'. Do not use 'بەیانیت باش'، use 'سپێدە باش'."
     )
 
-    # 4. Input field
     if prompt := st.chat_input("پسیارەکێ ب بادینی بکە..."):
         st.session_state.messages.append({"role": "user", "content": prompt})
         with st.chat_message("user"):
@@ -39,14 +36,13 @@ else:
 
         with st.chat_message("assistant"):
             try:
-                # ناردنا نامەیێ بۆ Groq ب ڕێنماییا بادینی
                 chat_completion = client.chat.completions.create(
                     messages=[
                         {"role": "system", "content": badini_instructions},
                         {"role": "user", "content": prompt}
                     ],
                     model="llama-3.3-70b-versatile",
-                    temperature=0.7, # بۆ هندێ ئاخفتنا وێ سروشتی بیت
+                    temperature=0.4, # نزمکرنا پلەیێ دا پتر پابەندی ڕێنماییا بیت
                 )
                 
                 response_text = chat_completion.choices[0].message.content
@@ -55,7 +51,4 @@ else:
             except Exception as e:
                 st.error(f"Error: {e}")
 
-# Sidebar
-st.sidebar.markdown("---")
 st.sidebar.write("Developed by: **Sidad Ahmad**")
-st.sidebar.write("Region: **Behdinan**")
