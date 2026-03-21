@@ -2,10 +2,11 @@ import streamlit as st
 from groq import Groq
 
 # 1. Setup Page
-st.set_page_config(page_title="Sidad AI Pro", page_icon="🤖")
-st.title("🤖 Sidad AI - Professional Edition")
+st.set_page_config(page_title="Sidad AI Giant", page_icon="🌐", layout="wide")
+st.title("🌐 Sidad AI - Giant Model Edition")
+st.markdown("---")
 
-# 2. API Key from Secrets
+# 2. API Key
 api_key = st.secrets.get("GEMINI_KEY")
 
 if not api_key:
@@ -15,47 +16,57 @@ else:
 
     if "messages" not in st.session_state:
         st.session_state.messages = []
-        welcome_msg = "خێرهاتی بۆ **Sidad AI**. ئەز یێ ل ڤێرێ مە دا ب شێوەیەکێ پڕۆفیشنال هاریکارییا تە بکەم. How can I help you today?"
-        st.session_state.messages.append({"role": "assistant", "content": welcome_msg})
+        welcome = "خێرهاتی بۆ ڤێرژنا عیملاق یا **Sidad AI**. ئەز نوکە ب مێشکەکێ زۆر مەزن دئاخڤم. How can I assist you?"
+        st.session_state.messages.append({"role": "assistant", "content": welcome})
 
     for message in st.session_state.messages:
         with st.chat_message(message["role"]):
             st.markdown(message["content"])
 
-    # 3. ڕێنماییا 'فول مێشک' (Advanced Instruction)
-    pro_logic = (
-        "You are Sidad AI, a high-level professional assistant. "
-        "STRICT LANGUAGE RULES:\n"
-        "- Dialect: Pure Badini (Kurmanji). NEVER use Sorani verb patterns like 'چۆن دکەم' or 'یارمەتیتان بکەم'.\n"
-        "- Correct Patterns: Instead of 'یارمەتی دەکەم', use 'هاریکارییا تە دکەم'. Instead of 'چۆنیت', use 'چەوانی'.\n"
-        "- Forbidden words: (چۆن، یارمەتی، دەکەم، ئەکەم، دەچم، بەیانیت باش).\n"
-        "- Approved words: (چەوا، هاریکاری، دکەم، دچم، سپێدە باش، سوپاس، دڤێت).\n"
-        "- English: Use C1/C2 level professional English for technical queries.\n"
-        "- Tone: Helpful, direct, and very smart."
+    # 3. ڕێنماییا مێشکێ عیملاق (Giant Brain Instructions)
+    # ئەڤە ڕێنماییەکا زۆر پڕۆفیشنالە بۆ مۆدێلێن مەزن
+    giant_logic = (
+        "You are Sidad AI, powered by the world's most powerful open-weights model. "
+        "Your creator is Sidad Ahmad, a professional Python developer.\n"
+        "RULES:\n"
+        "- LANGUAGE: Pure Badini Kurdish for local talk. Professional English for technical talk.\n"
+        "- KNOWLEDGE: You are an expert in Data Science, Automation, and Python.\n"
+        "- BEHAVIOR: Be extremely smart, precise, and helpful. No Sorani words allowed.\n"
+        "- BADINI EXAMPLES: (دکەم، دچم، دڤێت، چەوانی، سوپاس، سپێدە باش)."
     )
 
-    if prompt := st.chat_input("Ask something / پسیارەکێ بکە..."):
+    if prompt := st.chat_input("پسیارەکا ئالۆز بکە..."):
         st.session_state.messages.append({"role": "user", "content": prompt})
         with st.chat_message("user"):
             st.markdown(prompt)
 
         with st.chat_message("assistant"):
             try:
+                # بکارئینانا مۆدێلا عیملاق Llama 3.1 405B
                 chat_completion = client.chat.completions.create(
                     messages=[
-                        {"role": "system", "content": pro_logic},
-                        *st.session_state.messages[-6:] # مێشکێ وی یێ ٦ نامەیێن دوماهیکێ
+                        {"role": "system", "content": giant_logic},
+                        *st.session_state.messages[-8:]
                     ],
-                    model="llama-3.3-70b-versatile",
-                    temperature=0.3, # کێمکرنا "خەونێن" مۆدێلێ و زێدەکرنا ڕاستیێ
+                    model="llama-3.1-405b-reasoning", # ئەڤە مۆدێلا عیملاقە
+                    temperature=0.3,
                 )
                 
                 response_text = chat_completion.choices[0].message.content
                 st.markdown(response_text)
                 st.session_state.messages.append({"role": "assistant", "content": response_text})
             except Exception as e:
-                st.error(f"Error: {e}")
+                # ئەگەر 405B ل دەف تە قەرەبالغ بوو، ئەڤێ تاقی بکە: llama-3.3-70b-versatile
+                st.warning("مۆدێلا عیملاق یا مژوولە، ئەز دێ ب مۆدێلا 70B بەرسڤێ دەم...")
+                chat_completion = client.chat.completions.create(
+                    messages=[{"role": "system", "content": giant_logic}, *st.session_state.messages[-5:]],
+                    model="llama-3.3-70b-versatile",
+                    temperature=0.3,
+                )
+                response_text = chat_completion.choices[0].message.content
+                st.markdown(response_text)
+                st.session_state.messages.append({"role": "assistant", "content": response_text})
 
 st.sidebar.markdown("---")
 st.sidebar.write("Owner: **Sidad Ahmad**")
-st.sidebar.write("System: **Llama 3.3 Pro**")
+st.sidebar.write("Model: **Llama 405B / 70B**")
