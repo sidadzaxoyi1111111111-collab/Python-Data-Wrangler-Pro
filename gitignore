@@ -1,0 +1,14 @@
+# پاشکەفتێن پایتۆن
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+env/
+
+# فایلێن کلیلێن نهێنی (زۆر گرنگە!)
+.env
+keys.txt
+
+# فایلێن سیستەمی
+.DS_Store
+Thumbs.db
