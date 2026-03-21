@@ -1,21 +1,17 @@
 import streamlit as st
-import google.generativeai as genai
+from groq import Groq
 
-# 1. ڕێکخستنا لاپەڕەی
+# 1. Setup
 st.set_page_config(page_title="Sidad AI", page_icon="🤖")
-st.title("🤖 Sidad AI - Gemini 1.5 Flash")
+st.title("🤖 Sidad AI (Ultra Fast)")
 
-# 2. ئینانا کلیلێ (API Key) ژ Secrets
+# 2. API Key
 api_key = st.secrets.get("GEMINI_KEY")
 
 if not api_key:
-    st.error("⚠️ کلیل (API Key) نەهاتییە دیتن! ل ناڤ Secrets دانێ.")
+    st.error("⚠️ کلیل ل ناڤ Secrets نەهاتییە دیتن!")
 else:
-    # ڕێکخستنا گوگل
-    genai.configure(api_key=api_key)
-    
-    # ڤێرژنا گونجای یا مۆدێلێ دا خەتایا 404 نەمینیت
-    model = genai.GenerativeModel(model_name="gemini-1.5-flash")
+    client = Groq(api_key=api_key)
 
     if "messages" not in st.session_state:
         st.session_state.messages = []
@@ -31,12 +27,16 @@ else:
 
         with st.chat_message("assistant"):
             try:
-                # فەرمانا زمانێ بادینی
-                response = model.generate_content(f"تۆ Sidad AI، ب زمانی کوردی بادینی بەرسڤێ بدە: {prompt}")
-                st.markdown(response.text)
-                st.session_state.messages.append({"role": "assistant", "content": response.text})
+                # بکارئینانا مۆدێلا Llama 3.3 یا زۆر ب لەز
+                chat_completion = client.chat.completions.create(
+                    messages=[
+                        {"role": "system", "content": "تۆ Sidad AI، ب زمانی کوردی بادینی بەرسڤێ بدە."},
+                        {"role": "user", "content": prompt}
+                    ],
+                    model="llama-3.3-70b-versatile",
+                )
+                response_text = chat_completion.choices[0].message.content
+                st.markdown(response_text)
+                st.session_state.messages.append({"role": "assistant", "content": response_text})
             except Exception as e:
-                # ئەگەر هەر خەتا دا، ڤێرژنەکێ دی تاقی بکە
                 st.error(f"Error: {e}")
-
-st.sidebar.write("Developed by: **Sidad Ahmad**")
