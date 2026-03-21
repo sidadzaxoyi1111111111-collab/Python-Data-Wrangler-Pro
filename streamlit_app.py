@@ -1,56 +1,48 @@
 import streamlit as st
-import pandas as pd
+from google import genai
+import os
+from dotenv import load_dotenv
 
-# Page Config
-st.set_page_config(page_title="Sidad | AI & Engineering Hub", layout="wide")
+# بارکرنا کلیلێن نهێنی ژ فایلا .env
+load_dotenv()
+GEMINI_KEY = os.getenv('GEMINI_KEY')
 
-# Custom CSS for Dark Theme
-st.markdown("""
-    <style>
-    .main { background-color: #0b1e2d; color: white; }
-    .stMetric { background-color: #112a40; border: 1px solid #1e3a5f; padding: 20px; border-radius: 12px; }
-    h1 { color: #4db8ff; border-bottom: 2px solid #4db8ff; }
-    </style>
-    """, unsafe_allow_html=True)
+# ڕێکخستنا لاپەرێ وێبێ
+st.set_page_config(page_title="Sidad AI Dashboard", page_icon="🤖")
 
-# --- SECTION 1: TECHNICAL PROFILE ---
-st.title("TECHNICAL ENGINEERING PROFILE 🚀")
-col_a, col_b = st.columns([2,1])
-with col_a:
-    st.write("**Candidate:** Sidad Ahmad | **Expertise:** Python, SQL, AI")
-with col_b:
-    st.write("**Location:** Zakho / Remote")
+st.title("🤖 Sidad AI - Gemini 2.0 Interface")
+st.markdown("ئەڤە ناوبەستەکێ وێبێ یە بۆ تاقیکرنا مۆدێلا ژیریا دەستکرد ب زمانی کوردی بادینی.")
 
-# Metrics (Like your image)
-c1, c2, c3 = st.columns(3)
-c1.metric("API LATENCY", "45ms", "-10ms")
-c2.metric("DB THROUGHPUT", "1.2k req/s", "15%")
-c3.metric("AI ACCURACY", "98.4%", "0.2%")
+# لایێ چەپێ یێ شاشێ (Sidebar)
+with st.sidebar:
+    st.header("Settings")
+    model_name = st.selectbox("Select Model", ["gemini-2.0-flash", "gemini-1.5-flash"])
+    st.info("Built by Sidad Ahmad | Python Developer")
 
-st.markdown("---")
-
-# --- SECTION 2: AI CHATBOT INTERFACE ---
-st.subheader("💬 AI Assistant (Powered by GPT)")
-
-# Input for API Key (Safety First)
-with st.expander("🔐 Configure AI Settings"):
-    openai_api_key = st.text_input("OpenAI API Key", type="password")
-
+# شوونا چاتێ (Chat Interface)
 if "messages" not in st.session_state:
-    st.session_state["messages"] = [{"role": "assistant", "content": "Hello Sidad! How can I help you with your data today?"}]
+    st.session_state.messages = []
 
-for msg in st.session_state.messages:
-    st.chat_message(msg["role"]).write(msg["content"])
+# نیشادانا نامەیێن کۆن
+for message in st.session_state.messages:
+    with st.chat_message(message["role"]):
+        st.markdown(message["content"])
 
-if prompt := st.chat_input():
-    if not openai_api_key:
-        st.info("Please add your OpenAI API key to continue.")
-        st.stop()
-    
+# وەرگرتنا نامێ ژ بەکارهێنەری
+if prompt := st.chat_input("چی ل مێشکێ تە دایە؟"):
     st.session_state.messages.append({"role": "user", "content": prompt})
-    st.chat_message("user").write(prompt)
-    
-    # Here you would call OpenAI API - for now, we show a mock response
-    response = f"Sidad, this is a simulated response to: {prompt}. (Connect your API key for real AI)"
-    st.session_state.messages.append({"role": "assistant", "content": response})
-    st.chat_message("assistant").write(response)
+    with st.chat_message("user"):
+        st.markdown(prompt)
+
+    # پەیوەندی ل گەل Gemini API
+    try:
+        client = genai.Client(api_key=GEMINI_KEY)
+        with st.chat_message("assistant"):
+            response = client.models.generate_content(
+                model=model_name,
+                contents=f"تۆ یاریدەدەرێکی زیرەکی، بە زمانی کوردی بادینی وەڵام بدەوە: {prompt}"
+            )
+            st.markdown(response.text)
+            st.session_state.messages.append({"role": "assistant", "content": response.text})
+    except Exception as e:
+        st.error(f"Error: {e}")
