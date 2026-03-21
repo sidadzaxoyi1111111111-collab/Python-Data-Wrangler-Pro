@@ -11,23 +11,21 @@ st.markdown("---")
 api_key = st.secrets.get("GEMINI_KEY")
 
 if not api_key:
-    st.error("⚠️ API Key is missing!")
+    st.error("⚠️ کلیل ل ناڤ Secrets نەهاتییە دیتن!")
 else:
     if "messages" not in st.session_state:
         st.session_state.messages = []
-        welcome = "خێرهاتی بۆ هێزا عیملاق یا **Sidad AI**. ئەز نوکە ب ڕێکا OpenRouter دئاخڤم. How can I assist you?"
+        welcome = "خێرهاتی بۆ هێزا عیملاق یا **Sidad AI**. ئەز نوکە ب ڕێکا OpenRouter دئاخڤم."
         st.session_state.messages.append({"role": "assistant", "content": welcome})
 
     for message in st.session_state.messages:
         with st.chat_message(message["role"]):
             st.markdown(message["content"])
 
-    # 3. ڕێنماییا مێشکێ عیملاق (Professional Logic)
+    # 3. ڕێنماییا مێشکێ عیملاق
     badini_logic = (
-        "You are Sidad AI, a super-intelligent assistant from Zakho. Creator: Sidad Ahmad.\n"
-        "STRICT LANGUAGE: Speak ONLY in Badini Kurdish dialect. NEVER use Sorani like 'دەکەم' or 'دەچم'.\n"
-        "Use 'دکەم', 'دچم', 'دڤێت', 'چەوانی', 'سوپاس'.\n"
-        "If the user asks in English, be very professional and academic."
+        "You are Sidad AI, a professional assistant from Zakho. Creator: Sidad Ahmad.\n"
+        "STRICT LANGUAGE: Speak ONLY in Badini Kurdish dialect. Use 'دکەم', 'دچم', 'دڤێت', 'چەوانی'."
     )
 
     if prompt := st.chat_input("پسیارەکێ بکە..."):
@@ -37,7 +35,6 @@ else:
 
         with st.chat_message("assistant"):
             try:
-                # بانگکرنا OpenRouter API
                 response = requests.post(
                     url="https://openrouter.ai/api/v1/chat/completions",
                     headers={
@@ -45,7 +42,7 @@ else:
                         "Content-Type": "application/json",
                     },
                     data=json.dumps({
-                        "model": "meta-llama/llama-3.3-70b:free", 
+                        "model": "google/gemini-2.0-flash-exp:free", # گوهۆڕین بۆ مۆدێلەکا ب هێزتر و فۆل فڕی
                         "messages": [
                             {"role": "system", "content": badini_logic},
                             *st.session_state.messages[-5:]
@@ -54,12 +51,19 @@ else:
                 )
                 
                 result = response.json()
-                response_text = result['choices'][0]['message']['content']
-                st.markdown(response_text)
-                st.session_state.messages.append({"role": "assistant", "content": response_text})
+                
+                # پشکنینا خەتایێ بەری خویندنێ
+                if 'choices' in result:
+                    response_text = result['choices'][0]['message']['content']
+                    st.markdown(response_text)
+                    st.session_state.messages.append({"role": "assistant", "content": response_text})
+                else:
+                    # نیشاندانا خەتایێ ئەگەر هەبیت
+                    error_msg = result.get('error', {}).get('message', 'Unknown Error from OpenRouter')
+                    st.error(f"OpenRouter Error: {error_msg}")
+                    
             except Exception as e:
-                st.error(f"Error: {e}")
+                st.error(f"Connection Error: {e}")
 
 st.sidebar.markdown("---")
 st.sidebar.write("Owner: **Sidad Ahmad**")
-st.sidebar.write("Platform: **OpenRouter**")
