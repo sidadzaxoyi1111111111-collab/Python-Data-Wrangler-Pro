@@ -14,7 +14,7 @@ for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-# 3. Intelligent Switching Logic
+# 3. Intelligent Logic (Auto-Provider)
 client = Client()
 
 if prompt := st.chat_input("سلاڤەکێ ب بادینی بکە..."):
@@ -23,36 +23,25 @@ if prompt := st.chat_input("سلاڤەکێ ب بادینی بکە..."):
         st.markdown(prompt)
 
     with st.chat_message("assistant"):
-        # لیستەکا سێرڤەرێن کو زۆرترین جاران کار دکەن
-        providers = [
-            g4f.Provider.Blackbox,
-            g4f.Provider.ChatGptEs,
-            g4f.Provider.DuckDuckGo,
-            g4f.Provider.Liaobots
-        ]
-        
-        success = False
-        for provider in providers:
-            try:
-                response = client.chat.completions.create(
-                    model="gpt-4o",
-                    provider=provider,
-                    messages=[
-                        {"role": "system", "content": "You are Sidad AI. Creator: Sidad Ahmad. Speak Badini Kurdish ONLY."},
-                        {"role": "user", "content": prompt}
-                    ]
-                )
-                res = response.choices[0].message.content
-                if res and len(res) > 2:
-                    st.markdown(res)
-                    st.session_state.messages.append({"role": "assistant", "content": res})
-                    success = True
-                    break
-            except:
-                continue # ئەگەر یێ ئێکێ مژوول بوو، دێ چیتە سەر یێ دووێ
-        
-        if not success:
-            st.error("هەمی سێرڤەر مژوولن! هیڤییە ١٠ چرکێن دی تاقی بکەڤە.")
+        try:
+            # ل ڤێرە مە 'provider' کرە ئۆتۆماتیک دا تووشی 'AttributeError' نەبی
+            response = client.chat.completions.create(
+                model="gpt-4o",
+                messages=[
+                    {"role": "system", "content": "You are Sidad AI. Answer in Badini Kurdish dialect only. Creator: Sidad Ahmad."},
+                    {"role": "user", "content": prompt}
+                ]
+            )
+            
+            res = response.choices[0].message.content
+            if res:
+                st.markdown(res)
+                st.session_state.messages.append({"role": "assistant", "content": res})
+            else:
+                st.error("بەرسڤ یا چۆل بوو، دیسا تاقی بکە.")
+                
+        except Exception as e:
+            st.error("سێرڤەرێن بێ کلیل نوکە یێن مژوولن. هیڤییە کێمەکێ دی تاقی بکە.")
 
 st.sidebar.write("Owner: **Sidad Ahmad**")
-st.sidebar.info("🚀 Using Multi-Provider Logic")
+st.sidebar.success("✅ Auto-Provider Active")
