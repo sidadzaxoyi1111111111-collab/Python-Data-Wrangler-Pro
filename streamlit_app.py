@@ -1,68 +1,37 @@
 import streamlit as st
-import telebot
-import requests
-import threading
+import google.generativeai as genai
 
-# --- ڕێکخستنا لاپەڕێ سایتێ سداد ---
-st.set_page_config(page_title="Sidad AI Pro", page_icon="🤖")
-st.title("🤖 Sidad AI Dashboard")
+# ١. ڕێکخستنا کلیلێ (لێرە کلیلێ دابنێ یان ل Secrets)
+GEMINI_KEY = "AIzaSyD_xIP9De8bCQiT8f_LDajtpV8vi7N62hI"
+genai.configure(api_key=GEMINI_KEY)
+model = genai.GenerativeModel('gemini-1.5-flash')
 
-# --- وەرگرتنا کلیلان ژ Secrets ---
-if "CHATANYWHERE_API_KEY" in st.secrets and "TELEGRAM_BOT_TOKEN" in st.secrets:
-    AI_KEY = st.secrets["CHATANYWHERE_API_KEY"]
-    BOT_TOKEN = st.secrets["TELEGRAM_BOT_TOKEN"]
-    AI_URL = "https://api.chatanywhere.tech/v1/chat/completions"
+# ٢. دیزاینا سایتێ سداد
+st.set_page_config(page_title="Sidad Smart AI", page_icon="🤖")
+st.title("🤖 ساداد سمارت AI")
+st.subheader("ب خێر بێی بۆ سایتێ من یێ ژیرییا دەستکرد")
 
-    bot = telebot.TeleBot(BOT_TOKEN)
+# ٣. جهێ نڤیسینا نامێ
+if "messages" not in st.session_state:
+    st.session_state.messages = []
 
-    def get_ai_response(user_text):
-        headers = {"Authorization": f"Bearer {AI_KEY}", "Content-Type": "application/json"}
-        payload = {
-            "model": "gpt-3.5-turbo",
-            "messages": [
-                {"role": "user", "content": user_text}
-            ]
-        }
+# نیشاندانا نامێن کۆن
+for message in st.session_state.messages:
+    with st.chat_message(message["role"]):
+        st.markdown(message["content"])
+
+# وەرگرتنا نامێ ژ بەکارهێنەری
+if prompt := st.chat_input("تشتەکێ بنڤیسە..."):
+    st.session_state.messages.append({"role": "user", "content": prompt})
+    with st.chat_message("user"):
+        st.markdown(prompt)
+
+    # ٤. وەرگرتنا بەرسڤێ ژ Gemini
+    with st.chat_message("assistant"):
         try:
-            r = requests.post(AI_URL, headers=headers, json=payload)
-            return r.json()['choices'][0]['message']['content']
-        except:
-            return "ئاریشەیەک هەبوو!"
-
-    # --- تێلێگرام بۆت ---
-    @bot.message_handler(func=lambda m: True)
-    def handle_tg(m):
-        reply = get_ai_response(m.text)
-        bot.reply_to(m, reply)
-
-    def run_bot():
-        try:
-            bot.remove_webhook()
-            bot.polling(none_stop=True)
-        except:
-            pass
-
-    if st.button("🚀 دەستپێکرنا بۆتێ تێلێگرامێ"):
-        threading.Thread(target=run_bot, daemon=True).start()
-        st.success("بۆت چالاک بوو! نوکە ل تێلێگرامێ کار دکەت.")
-
-    # --- چاتا ناو سایتی ---
-    st.divider()
-    if "messages" not in st.session_state:
-        st.session_state.messages = []
-
-    for msg in st.session_state.messages:
-        with st.chat_message(msg["role"]):
-            st.write(msg["content"])
-
-    if prompt := st.chat_input("لێرە بنڤیسە سداد..."):
-        st.session_state.messages.append({"role": "user", "content": prompt})
-        with st.chat_message("user"):
-            st.write(prompt)
-        
-        ans = get_ai_response(prompt)
-        st.session_state.messages.append({"role": "assistant", "content": ans})
-        with st.chat_message("assistant"):
-            st.write(ans)
-else:
-    st.error("کلیل ل سیکرێتس نینن! CHATANYWHERE_API_KEY و TELEGRAM_BOT_TOKEN زێدە بکە.")
+            full_prompt = f"بەرسڤ بدە ب کوردی بادینی: {prompt}"
+            response = model.generate_content(full_prompt)
+            st.markdown(response.text)
+            st.session_state.messages.append({"role": "assistant", "content": response.text})
+        except Exception as e:
+            st.error("ببورە، ئاریشەیەک د سێرڤەری دا هەبوو!")
