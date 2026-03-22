@@ -1,9 +1,10 @@
 import streamlit as st
+import g4f
 from g4f.client import Client
 
 # 1. Setup Page
-st.set_page_config(page_title="Sidad AI Pro", page_icon="🛡️")
-st.title("🛡️ Sidad AI - Pro Edition")
+st.set_page_config(page_title="Sidad AI Pro", page_icon="👑")
+st.title("👑 Sidad AI - Pro Edition")
 
 # 2. History Setup
 if "messages" not in st.session_state:
@@ -13,8 +14,7 @@ for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-# 3. Smart Provider Logic
-# ل ڤێرە 'Client' دێ کار کەت چونکی مە ل سەری 'Import' کرییە
+# 3. Intelligent Switching Logic
 client = Client()
 
 if prompt := st.chat_input("سلاڤەکێ ب بادینی بکە..."):
@@ -23,22 +23,36 @@ if prompt := st.chat_input("سلاڤەکێ ب بادینی بکە..."):
         st.markdown(prompt)
 
     with st.chat_message("assistant"):
-        try:
-            # ڕێنماییا بادینی
-            instruction = "STRICT: Answer in Badini Kurdish dialect only. "
-            
-            response = client.chat.completions.create(
-                model="gpt-4o", 
-                messages=[
-                    {"role": "system", "content": "You are Sidad AI, created by Sidad Ahmad. Speak Badini."},
-                    {"role": "user", "content": instruction + prompt}
-                ]
-            )
-            res = response.choices[0].message.content
-            st.markdown(res)
-            st.session_state.messages.append({"role": "assistant", "content": res})
-        except:
-            st.error("سێرڤەر مژوولە، کێمەکێ دی تاقی بکە.")
+        # لیستەکا سێرڤەرێن کو زۆرترین جاران کار دکەن
+        providers = [
+            g4f.Provider.Blackbox,
+            g4f.Provider.ChatGptEs,
+            g4f.Provider.DuckDuckGo,
+            g4f.Provider.Liaobots
+        ]
+        
+        success = False
+        for provider in providers:
+            try:
+                response = client.chat.completions.create(
+                    model="gpt-4o",
+                    provider=provider,
+                    messages=[
+                        {"role": "system", "content": "You are Sidad AI. Creator: Sidad Ahmad. Speak Badini Kurdish ONLY."},
+                        {"role": "user", "content": prompt}
+                    ]
+                )
+                res = response.choices[0].message.content
+                if res and len(res) > 2:
+                    st.markdown(res)
+                    st.session_state.messages.append({"role": "assistant", "content": res})
+                    success = True
+                    break
+            except:
+                continue # ئەگەر یێ ئێکێ مژوول بوو، دێ چیتە سەر یێ دووێ
+        
+        if not success:
+            st.error("هەمی سێرڤەر مژوولن! هیڤییە ١٠ چرکێن دی تاقی بکەڤە.")
 
 st.sidebar.write("Owner: **Sidad Ahmad**")
-st.sidebar.success("✅ Fixed NameError")
+st.sidebar.info("🚀 Using Multi-Provider Logic")
