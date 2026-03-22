@@ -1,38 +1,32 @@
 import streamlit as st
-import pandas as pd
-import numpy as np
-import plotly.express as px
+import google.generativeai as genai
 
-# 1. Page Setup
-st.set_page_config(page_title="Sidad | Backend & AI Engineer", layout="wide")
+# ١. خواندنا کلیلێ ب شێوەیەکێ پاراستی
+if "GEMINI_API_KEY" in st.secrets:
+    api_key = st.secrets["GEMINI_API_KEY"]
+    genai.configure(api_key=api_key)
+    model = genai.GenerativeModel('gemini-1.5-flash')
+else:
+    st.error("کلیل ل ناڤ Secrets نەهاتییە دیتن!")
+    st.stop()
 
-# 2. Sidebar Info
-st.sidebar.title("🚀 Technical Profile")
-st.sidebar.info("""
-**Candidate:** Sidad Ahmad  
-**Expertise:** Python (FastAPI, Async), SQL, AI Integration  
-**Location:** Zakho / Remote  
-""")
+st.title("🐍 Sidad AI 2.0")
 
-# 3. Main Dashboard
-st.title("💻 High-Performance Data & AI Dashboard")
-st.write("Demonstrating real-time data processing and system metrics.")
+# ٢. سیستەمێ چاتێ
+if "messages" not in st.session_state:
+    st.session_state.messages = []
 
-# 4. Metrics Row
-col1, col2, col3 = st.columns(3)
-col1.metric("API Latency", "45ms", "-10ms")
-col2.metric("DB Throughput", "1.2k req/s", "15%")
-col3.metric("AI Accuracy", "98.4%", "0.2%")
+for message in st.session_state.messages:
+    with st.chat_message(message["role"]):
+        st.markdown(message["content"])
 
-st.divider()
+if prompt := st.chat_input("تشتەکێ بنڤیسە..."):
+    st.session_state.messages.append({"role": "user", "content": prompt})
+    with st.chat_message("user"):
+        st.markdown(prompt)
 
-# 5. Professional Chart
-st.subheader("📊 System Load Analysis")
-chart_data = pd.DataFrame(
-    np.random.randn(20, 2),
-    columns=['Server Load', 'User Traffic']
-)
-fig = px.line(chart_data, title="Real-time Monitoring")
-st.plotly_chart(fig, use_container_width=True)
-
-st.success("Dashboard is Live and Fully Functional.")
+    with st.chat_message("assistant"):
+        full_prompt = f"بەرسڤ بدە ب دیالەکتا بادینی: {prompt}"
+        response = model.generate_content(full_prompt)
+        st.markdown(response.text)
+        st.session_state.messages.append({"role": "assistant", "content": response.text})
