@@ -1,11 +1,11 @@
 import streamlit as st
 import google.generativeai as genai
 
-# 1. Setup Page
-st.set_page_config(page_title="Sidad AI Pro", page_icon="🤖")
+# 1. ڕێکخستنا لاپەڕەی
+st.set_page_config(page_title="Sidad AI Fixed", page_icon="🤖")
 st.title("🤖 Sidad AI - Connection Fixed")
 
-# 2. API Key from Secrets
+# 2. وەرگرتنا کلیلێ
 api_key = st.secrets.get("GEMINI_KEY")
 
 if not api_key:
@@ -14,18 +14,13 @@ else:
     try:
         genai.configure(api_key=api_key)
         
-        # چارەسەریا خەتایا 404: بکارئینانا ناڤێ سادە یێ مۆدێلێ
-        # ئەگەر 1.5-flash کار نەکر، دێ gemini-pro تاقی کەت
-        try:
-            model_name = "gemini-1.5-flash"
-            model = genai.GenerativeModel(model_name)
-        except:
-            model_name = "gemini-pro"
-            model = genai.GenerativeModel(model_name)
+        # چارەسەریا فەرمی بۆ خەتایا 404:
+        # بکارئینانا 'gemini-1.5-flash-latest' ل شوونا ناڤێ کۆن
+        model = genai.GenerativeModel('gemini-1.5-flash-latest')
 
         if "chat_session" not in st.session_state:
-            # ڕێنماییا بادینی (Badini Logic)
-            sys_msg = "You are Sidad AI. Speak ONLY in Badini Kurdish dialect. Be professional."
+            # ڕێنماییا مێشکێ بادینی
+            badini_logic = "You are Sidad AI. Speak ONLY in Badini Kurdish dialect. Be professional."
             st.session_state.chat_session = model.start_chat(history=[])
 
         # نیشاندانا نامەیێن کۆن
@@ -34,19 +29,22 @@ else:
             with st.chat_message(role):
                 st.markdown(message.parts[0].text)
 
-        # چاتێ نوو
+        # چاتا نوو
         if prompt := st.chat_input("سلاڤەکێ ب بادینی بکە..."):
             with st.chat_message("user"):
                 st.markdown(prompt)
             
             with st.chat_message("assistant"):
-                # فرێکرنا نامەیێ ب شێوەیەکێ پاراستی
-                response = st.session_state.chat_session.send_message(prompt)
-                st.markdown(response.text)
+                try:
+                    # فرێکرنا نامەیێ
+                    response = st.session_state.chat_session.send_message(prompt)
+                    st.markdown(response.text)
+                except Exception as inner_e:
+                    st.error(f"Google Response Error: {inner_e}")
                 
     except Exception as e:
-        st.error(f"❌ کێشەیەکا نوو هەبوو: {e}")
+        st.error(f"Connection Error: {e}")
 
 st.sidebar.markdown("---")
 st.sidebar.write("Owner: **Sidad Ahmad**")
-st.sidebar.info(f"Active Model: {model_name if 'model_name' in locals() else 'None'}")
+st.sidebar.info("Engine: **Gemini 1.5 Flash Latest**")
