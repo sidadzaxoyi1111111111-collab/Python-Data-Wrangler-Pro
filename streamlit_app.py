@@ -1,47 +1,56 @@
 import streamlit as st
-import g4f
-from g4f.client import Client
+import requests
 
 # 1. Setup Page
-st.set_page_config(page_title="Sidad AI Pro", page_icon="👑")
-st.title("👑 Sidad AI - Pro Edition")
+st.set_page_config(page_title="Sidad AI Hero", page_icon="👑")
+st.title("👑 Sidad AI - Stable Edition")
 
-# 2. History Setup
-if "messages" not in st.session_state:
-    st.session_state.messages = []
+# 2. Get Token from Secrets
+hf_token = st.secrets.get("HF_TOKEN")
 
-for message in st.session_state.messages:
-    with st.chat_message(message["role"]):
-        st.markdown(message["content"])
+if not hf_token:
+    st.error("⚠️ کەرەم بکە کلیلا HF_TOKEN د ناڤ Secrets دا زێدە بکە.")
+else:
+    if "messages" not in st.session_state:
+        st.session_state.messages = []
+        welcome = "سلاڤ سداد! ئەڤە وەشانا جێگیر و ب هێز یا **Sidad AI** یە. ئەز نوکە یێ بەرهەڤم!"
+        st.session_state.messages.append({"role": "assistant", "content": welcome})
 
-# 3. Intelligent Logic (Auto-Provider)
-client = Client()
+    for message in st.session_state.messages:
+        with st.chat_message(message["role"]):
+            st.markdown(message["content"])
 
-if prompt := st.chat_input("سلاڤەکێ ب بادینی بکە..."):
-    st.session_state.messages.append({"role": "user", "content": prompt})
-    with st.chat_message("user"):
-        st.markdown(prompt)
+    # مۆدێلا Llama 3.1 (عیملاق)
+    API_URL = "https://api-inference.huggingface.co/models/meta-llama/Llama-3.1-8B-Instruct"
+    headers = {"Authorization": f"Bearer {hf_token}"}
 
-    with st.chat_message("assistant"):
-        try:
-            # ل ڤێرە مە 'provider' کرە ئۆتۆماتیک دا تووشی 'AttributeError' نەبی
-            response = client.chat.completions.create(
-                model="gpt-4o",
-                messages=[
-                    {"role": "system", "content": "You are Sidad AI. Answer in Badini Kurdish dialect only. Creator: Sidad Ahmad."},
-                    {"role": "user", "content": prompt}
-                ]
-            )
-            
-            res = response.choices[0].message.content
-            if res:
-                st.markdown(res)
-                st.session_state.messages.append({"role": "assistant", "content": res})
-            else:
-                st.error("بەرسڤ یا چۆل بوو، دیسا تاقی بکە.")
+    if prompt := st.chat_input("پسیارەکێ ب بادینی بکە..."):
+        st.session_state.messages.append({"role": "user", "content": prompt})
+        with st.chat_message("user"):
+            st.markdown(prompt)
+
+        with st.chat_message("assistant"):
+            try:
+                # ڕێنماییا بادینی (Badini Expert Logic)
+                payload = {
+                    "inputs": f"<|system|>\nYou are Sidad AI, a professional assistant from Zakho. Speak ONLY in Badini Kurdish dialect. Use words like: دکەم, دچم, چەوانی, سوپاس.\n<|user|>\n{prompt}\n<|assistant|>\n",
+                    "parameters": {"max_new_tokens": 500, "temperature": 0.7, "return_full_text": False}
+                }
                 
-        except Exception as e:
-            st.error("سێرڤەرێن بێ کلیل نوکە یێن مژوولن. هیڤییە کێمەکێ دی تاقی بکە.")
+                response = requests.post(API_URL, headers=headers, json=payload)
+                result = response.json()
+                
+                if isinstance(result, list) and 'generated_text' in result[0]:
+                    res_content = result[0]['generated_text']
+                    # پاقژکرنا بەرسڤێ ژ تێکستێن زێدە
+                    res_content = res_content.split("<|assistant|>")[-1].strip()
+                    
+                    st.markdown(res_content)
+                    st.session_state.messages.append({"role": "assistant", "content": res_content})
+                else:
+                    st.warning("سێرڤەر یێ دهێتە بارکرن (Loading)، چەند چرکەکێن دی تاقی بکە.")
+            except Exception as e:
+                st.error(f"Error: {e}")
 
 st.sidebar.write("Owner: **Sidad Ahmad**")
-st.sidebar.success("✅ Auto-Provider Active")
+st.sidebar.success("✅ Stable Connection Active")
