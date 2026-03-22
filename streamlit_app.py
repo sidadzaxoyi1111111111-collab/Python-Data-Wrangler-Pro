@@ -1,39 +1,17 @@
 import streamlit as st
-from openai import OpenAI
+import google.generativeai as genai
 
-st.title("🚀 Sidad AI - GPT-4o Edition")
+st.set_page_config(page_title="Sidad AI Pro", page_icon="🐍")
 
-# وەرگرتنا کلیلێ
-api_key = st.secrets.get("OPENAI_API_KEY")
+st.title("🐍 Sidad Python Pro AI")
+st.write("بخێر بێی بۆ پلاتفۆرمێ من یێ ژیرییا دەستکرد")
 
-if not api_key:
-    st.error("⚠️ کەرەم بکە کلیلێ د Secrets دا زێدە بکە.")
-else:
-    client = OpenAI(api_key=api_key)
+# ل ڤێرە کلیلێ خۆ دانێ
+genai.configure(api_key="YOUR_GEMINI_API_KEY")
+model = genai.GenerativeModel('gemini-1.5-flash')
 
-    if "messages" not in st.session_state:
-        st.session_state.messages = []
+user_input = st.text_input("پسیارەکێ ب بادینی ژ من بکە:")
 
-    for message in st.session_state.messages:
-        with st.chat_message(message["role"]):
-            st.markdown(message["content"])
-
-    if prompt := st.chat_input("پسیارەکێ ب بادینی بکە..."):
-        st.session_state.messages.append({"role": "user", "content": prompt})
-        with st.chat_message("user"):
-            st.markdown(prompt)
-
-        with st.chat_message("assistant"):
-            try:
-                response = client.chat.completions.create(
-                    model="gpt-4o",
-                    messages=[
-                        {"role": "system", "content": "You are Sidad AI. Speak ONLY in Badini Kurdish dialect."},
-                        *st.session_state.messages
-                    ]
-                )
-                res = response.choices[0].message.content
-                st.markdown(res)
-                st.session_state.messages.append({"role": "assistant", "content": res})
-            except Exception as e:
-                st.error(f"Error: {e}")
+if user_input:
+    response = model.generate_content(f"بەرسڤ بدە ب دیالەکتا بادینی: {user_input}")
+    st.info(response.text)
