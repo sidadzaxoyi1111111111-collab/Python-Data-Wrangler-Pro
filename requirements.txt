@@ -1,3 +1,2 @@
 streamlit
-g4f==7.3.4
-curl_cffi
+requests
