@@ -1,59 +1,36 @@
 import streamlit as st
 import google.generativeai as genai
 
-# 1. ڕێکخستنا لاپەڕەی
-st.set_page_config(page_title="Sidad AI Pro", page_icon="🤖", layout="centered")
-st.title("🤖 Sidad AI - Professional Edition")
-st.markdown("---")
+# 1. Setup
+st.set_page_config(page_title="Sidad AI Fix", page_icon="🔧")
+st.title("🔧 Sidad AI - Connection Fix")
 
-# 2. وەرگرتنا کلیلێ ژ سێکرێتس
 api_key = st.secrets.get("GEMINI_KEY")
 
-if not api_key:
-    st.error("⚠️ کلیل د سێکرێتس دا نەهاتییە دیتن! کەرەم بکە GEMINI_KEY زێدە بکە.")
-else:
-    # ڕێکخستنا مۆدێلا گوگل
-    genai.configure(api_key=api_key)
-    
-    # ڕێنماییا مێشکێ بادینی (Strict Badini Rules)
-    badini_logic = (
-        "You are Sidad AI, a professional assistant from Zakho. Creator: Sidad Ahmad.\n"
-        "STRICT LANGUAGE RULES:\n"
-        "- Speak ONLY in Badini Kurdish (Kurmanji dialect).\n"
-        "- Use words: 'دکەم', 'دچم', 'دڤێت', 'چەوانی', 'سوپاس', 'کەرەم بکە'.\n"
-        "- DO NOT use Sorani words like 'دەکەم', 'دەچم', 'یارمەتی'.\n"
-        "If the user speaks English, respond in professional academic English."
-    )
-
-    model = genai.GenerativeModel(
-        model_name="gemini-1.5-flash",
-        system_instruction=badini_logic
-    )
-
-    # دەسپێکرنا چاتێ
-    if "chat_session" not in st.session_state:
-        st.session_state.chat_session = model.start_chat(history=[])
-
-    # نیشاندانا نامەیێن پێشتر
-    for message in st.session_state.chat_session.history:
-        role = "assistant" if message.role == "model" else "user"
-        with st.chat_message(role):
-            st.markdown(message.parts[0].text)
-
-    # پسیارەکا نوو
-    if prompt := st.chat_input("پسیارەکێ ب بادینی بکە..."):
-        with st.chat_message("user"):
-            st.markdown(prompt)
+if api_key:
+    try:
+        genai.configure(api_key=api_key)
         
-        with st.chat_message("assistant"):
-            try:
-                response = st.session_state.chat_session.send_message(prompt)
-                st.markdown(response.text)
-            except Exception as e:
-                st.error(f"Error: {e}")
+        # تاقیکرنا مۆدێلێ ب شێوەیەکێ دروست
+        # ناڤێ مۆدێلێ ب ڤی ڕەنگی بنڤیسە: models/gemini-1.5-flash
+        model = genai.GenerativeModel('models/gemini-1.5-flash')
+        
+        if "chat" not in st.session_state:
+            st.session_state.chat = model.start_chat(history=[])
 
-# سایدبار بۆ زانیارییان
-st.sidebar.markdown("---")
+        if prompt := st.chat_input("سلاڤەکێ بکە..."):
+            with st.chat_message("user"):
+                st.markdown(prompt)
+            
+            with st.chat_message("assistant"):
+                # فرێکرنا نامەیێ
+                response = st.session_state.chat.send_message(prompt)
+                st.markdown(response.text)
+                
+    except Exception as e:
+        # ئەگەر خەتایەک هەبیت ل ڤێرە دێ نیشا تە دەت
+        st.error(f"Detailed Error: {e}")
+else:
+    st.warning("Please add GEMINI_KEY to Streamlit Secrets.")
+
 st.sidebar.write("Owner: **Sidad Ahmad**")
-st.sidebar.write("Engine: **Gemini 1.5 Flash**")
-st.sidebar.success("✅ System Online")
