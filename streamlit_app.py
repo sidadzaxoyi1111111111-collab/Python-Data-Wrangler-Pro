@@ -1,77 +1,59 @@
 import streamlit as st
-import requests
-import json
+import google.generativeai as genai
 
-# 1. Setup Page
-st.set_page_config(page_title="Sidad AI Together", page_icon="⚡")
-st.title("⚡ Sidad AI - Together Edition")
+# 1. ڕێکخستنا لاپەڕەی
+st.set_page_config(page_title="Sidad AI Pro", page_icon="🤖", layout="centered")
+st.title("🤖 Sidad AI - Professional Edition")
 st.markdown("---")
 
-# 2. API Key from Secrets
-raw_api_key = st.secrets.get("GEMINI_KEY")
+# 2. وەرگرتنا کلیلێ ژ سێکرێتس
+api_key = st.secrets.get("GEMINI_KEY")
 
-if not raw_api_key:
-    st.error("⚠️ کلیل ل ناڤ Secrets نەهاتییە دیتن!")
+if not api_key:
+    st.error("⚠️ کلیل د سێکرێتس دا نەهاتییە دیتن! کەرەم بکە GEMINI_KEY زێدە بکە.")
 else:
-    # پشکنینا کلیلێ دا چو نڤیسینێن زێدە تێدا نەمینن
-    api_key = raw_api_key.strip()
-
-    if "messages" not in st.session_state:
-        st.session_state.messages = []
-        welcome = "سلاڤ! خێرهاتی بۆ ڤێرژنا پڕۆفیشناڵ یا **Sidad AI**. ئەز نوکە ب مێشکێ **Together AI** دئاخڤم."
-        st.session_state.messages.append({"role": "assistant", "content": welcome})
-
-    for message in st.session_state.messages:
-        with st.chat_message(message["role"]):
-            st.markdown(message["content"])
-
-    # 3. ڕێنماییا بادینی (Professional Badini Logic)
+    # ڕێکخستنا مۆدێلا گوگل
+    genai.configure(api_key=api_key)
+    
+    # ڕێنماییا مێشکێ بادینی (Strict Badini Rules)
     badini_logic = (
-        "You are Sidad AI, a highly professional AI assistant created by Sidad Ahmad from Zakho. "
-        "STRICT LANGUAGE RULES: Speak ONLY in Badini Kurdish (Zakho dialect). "
-        "NEVER use Sorani words. Use 'دکەم', 'دچم', 'چەوانی', 'دڤێت', 'سوپاس'. "
+        "You are Sidad AI, a professional assistant from Zakho. Creator: Sidad Ahmad.\n"
+        "STRICT LANGUAGE RULES:\n"
+        "- Speak ONLY in Badini Kurdish (Kurmanji dialect).\n"
+        "- Use words: 'دکەم', 'دچم', 'دڤێت', 'چەوانی', 'سوپاس', 'کەرەم بکە'.\n"
+        "- DO NOT use Sorani words like 'دەکەم', 'دەچم', 'یارمەتی'.\n"
         "If the user speaks English, respond in professional academic English."
     )
 
+    model = genai.GenerativeModel(
+        model_name="gemini-1.5-flash",
+        system_instruction=badini_logic
+    )
+
+    # دەسپێکرنا چاتێ
+    if "chat_session" not in st.session_state:
+        st.session_state.chat_session = model.start_chat(history=[])
+
+    # نیشاندانا نامەیێن پێشتر
+    for message in st.session_state.chat_session.history:
+        role = "assistant" if message.role == "model" else "user"
+        with st.chat_message(role):
+            st.markdown(message.parts[0].text)
+
+    # پسیارەکا نوو
     if prompt := st.chat_input("پسیارەکێ ب بادینی بکە..."):
-        st.session_state.messages.append({"role": "user", "content": prompt})
         with st.chat_message("user"):
             st.markdown(prompt)
-
+        
         with st.chat_message("assistant"):
             try:
-                url = "https://api.together.xyz/v1/chat/completions"
-                
-                # ئامادەکرنا داتایان
-                payload = {
-                    "model": "meta-llama/Llama-3.3-70B-Instruct-Turbo", 
-                    "messages": [
-                        {"role": "system", "content": badini_logic},
-                        *st.session_state.messages[-5:]
-                    ],
-                    "temperature": 0.4,
-                    "max_tokens": 1024
-                }
-                
-                headers = {
-                    "Authorization": f"Bearer {api_key}",
-                    "Content-Type": "application/json"
-                }
-
-                response = requests.post(url, json=payload, headers=headers)
-                
-                if response.status_code == 200:
-                    result = response.json()
-                    response_text = result['choices'][0]['message']['content']
-                    st.markdown(response_text)
-                    st.session_state.messages.append({"role": "assistant", "content": response_text})
-                else:
-                    # نیشاندانا خەتایێ ب ڕوونی
-                    st.error(f"Together AI Error: {response.status_code} - {response.text}")
-
+                response = st.session_state.chat_session.send_message(prompt)
+                st.markdown(response.text)
             except Exception as e:
-                st.error(f"Connection Error: {e}")
+                st.error(f"Error: {e}")
 
+# سایدبار بۆ زانیارییان
 st.sidebar.markdown("---")
 st.sidebar.write("Owner: **Sidad Ahmad**")
-st.sidebar.write("Engine: **Together AI**")
+st.sidebar.write("Engine: **Gemini 1.5 Flash**")
+st.sidebar.success("✅ System Online")
