@@ -1,17 +1,21 @@
 import streamlit as st
 import google.generativeai as genai
 
-st.set_page_config(page_title="Sidad AI Pro", page_icon="🐍")
+# ١. خواندنا کلیلێ ژ جهێ نهێنی (Secrets)
+# ئێدی کلیل ل ڤێرە دیار نابیت و کەس نەشێت بدۆزیتەوە
+GEMINI_API_KEY = st.secrets["GEMINI_API_KEY"]
 
-st.title("🐍 Sidad Python Pro AI")
-st.write("بخێر بێی بۆ پلاتفۆرمێ من یێ ژیرییا دەستکرد")
-
-# ل ڤێرە کلیلێ خۆ دانێ
-genai.configure(api_key="YOUR_GEMINI_API_KEY")
+genai.configure(api_key=GEMINI_API_KEY)
 model = genai.GenerativeModel('gemini-1.5-flash')
 
-user_input = st.text_input("پسیارەکێ ب بادینی ژ من بکە:")
+# باقیا کۆدی وەکی خۆ بمینیت...
+st.title("🐍 Sidad AI 2.0 (Secured)")
 
-if user_input:
-    response = model.generate_content(f"بەرسڤ بدە ب دیالەکتا بادینی: {user_input}")
-    st.info(response.text)
+if prompt := st.chat_input("تشتەکێ بنڤیسە..."):
+    with st.chat_message("user"):
+        st.markdown(prompt)
+        
+    with st.chat_message("assistant"):
+        full_prompt = f"بەرسڤا ڤێ نامەیێ ب تنێ ب دیالەکتا کوردی بادینی بدە: {prompt}"
+        response = model.generate_content(full_prompt)
+        st.markdown(response.text)
