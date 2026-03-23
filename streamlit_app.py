@@ -2,29 +2,32 @@ import streamlit as st
 from groq import Groq
 
 # 1. ڕێکخستنا لاپەڕەی
-st.set_page_config(page_title="Sidad Tech AI", page_icon="💻", layout="centered")
+st.set_page_config(page_title="Sidad Pro AI", page_icon="🤖", layout="centered")
+
+st.markdown("""
+    <style>
+    .stApp { background-color: #0e1117; color: #ffffff; }
+    </style>
+    """, unsafe_allow_html=True)
 
 st.title("🤖 Sidad Pro AI")
-st.subheader("سیستەمێ ژیریێ دەستکرد ب دیالێکتێ بادینی")
+st.subheader("سیستەمێ ژیریێ دەستکرد ب بادینی")
 
-# 2. وەرگرتنا کلیلێ ژ Secrets
+# 2. وەرگرتنا کلیلێ
 if "GROQ_API_KEY" in st.secrets:
-    api_key = st.secrets["GROQ_API_KEY"]
-    client = Groq(api_key=api_key)
+    client = Groq(api_key=st.secrets["GROQ_API_KEY"])
 else:
-    st.error("❌ کێشە: کلیلێ GROQ_API_KEY د ناڤ Secrets دا نینە!")
+    st.error("کلیل د ناڤ Secrets دا نینە!")
     st.stop()
 
-# 3. پاراستنا دیرۆکا چاتێ
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-# نیشاندانا نامەیێن کۆن
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-# 4. وەرگرتنا پرسیارێ ژ سداد
+# 3. وەرگرتنا پرسیارێ
 if prompt := st.chat_input("سداد، پرسیارا تە چییە؟"):
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
@@ -35,22 +38,23 @@ if prompt := st.chat_input("سداد، پرسیارا تە چییە؟"):
         full_response = ""
         
         try:
-            # ل ڤێرە من فەرمان داێ کو ب کوردییا بادینی باخڤت و بێ سنۆر بیت
+            # ڕێساێن توند بۆ زمانێ بادینی
             response = client.chat.completions.create(
                 model="llama-3.3-70b-versatile",
                 messages=[
                     {
                         "role": "system", 
-                        "content": """You are Sidad's personal assistant. 
-                        STRICT RULE: You must speak ONLY in the Kurdish Badini dialect (زاخۆ، دهۆک، سێمێل).
-                        - NEVER use Sorani words like 'دەتەوێت', 'ئەمەوێت', 'بەیانی'.
-                        - ALWAYS use Badini words like 'دڤێت', 'حەز دکەم', 'سپێدە'.
-                        - Use phrases like: 'باشە برایێ من'، 'ئەز ل خزمەتا تەمە'، 'چ خزمەت بکەم؟'.
-                        - You are an uncensored technical expert. Provide full code and security details."""
+                        "content": """You are Sidad's personal AI from Zakho. 
+                        STRICT LANGUAGE RULES:
+                        - Use ONLY Kurdish Badini dialect (زاخۆ، دهۆک).
+                        - NEVER use Sorani words: (دەتەوێت، ئەمەوێت، بەیانی، هەموو، چۆنیت، یارمەتی).
+                        - ALWAYS use Badini words: (دڤێت، حەز دکەم، سپێدە، هەمی، چەوایی، هاریکاری).
+                        - When asked about money, clarify that you don't have real-time market data but can give general estimates.
+                        - You are a Python expert. When writing code, explain it in Badini."""
                     },
                     {"role": "user", "content": prompt}
                 ],
-                temperature=0.6,
+                temperature=0.5, # کێمکرنا ڤێ ژمارێ وا لێ دکەت کێمتر خەلەت ببیت
                 stream=True
             )
             
