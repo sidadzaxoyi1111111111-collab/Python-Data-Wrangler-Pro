@@ -1,7 +1,2 @@
-ئامادەیە! 🎉
-
-**ئێستا دوو فایلت هەیە:**
-- ✅ `chatbot.py`
-- ✅ `requirements.txt`
-
-هەر دووکیان بارکە بۆ GitHub ی خۆت، Streamlit خۆی دەناسێتەوە! 🚀
+anthropic
+streamlit
