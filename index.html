@@ -3,95 +3,77 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Siso AI Pro - Puter.js</title>
+    <title>Sidad Tech - AI</title>
     <script src="https://js.puter.com/v2/"></script>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; margin: 0; padding: 20px; text-align: center; }
-        .container { max-width: 700px; margin: auto; background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
-        h1 { color: #2563eb; margin-bottom: 5px; }
-        p.subtitle { color: #64748b; font-size: 14px; margin-bottom: 25px; }
-        
-        .box { border: 2px solid #e2e8f0; border-radius: 15px; padding: 20px; margin-bottom: 20px; background: #f8fafc; }
-        textarea { width: 100%; padding: 12px; border: 1.5px solid #cbd5e1; border-radius: 10px; font-size: 16px; outline: none; resize: none; box-sizing: border-box; }
-        
-        .btn-group { display: flex; gap: 10px; margin-top: 15px; }
-        button { flex: 1; padding: 12px; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; font-size: 16px; transition: 0.3s; color: white; }
-        .btn-chat { background-color: #2563eb; }
-        .btn-image { background-color: #059669; }
-        button:hover { opacity: 0.85; transform: translateY(-2px); }
-
-        #result { margin-top: 25px; padding: 15px; background: #ffffff; border-right: 4px solid #2563eb; border-radius: 8px; text-align: right; min-height: 50px; line-height: 1.6; }
-        #imageResult { margin-top: 20px; max-width: 100%; border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); display: none; }
-        .loading { font-size: 14px; color: #64748b; display: none; margin-top: 10px; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f4f9; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .chat-container { width: 100%; max-width: 500px; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        h1 { color: #2c3e50; text-align: center; font-size: 24px; margin-bottom: 20px; }
+        #chat-box { height: 300px; overflow-y: auto; border: 1px solid #ddd; padding: 10px; margin-bottom: 15px; border-radius: 10px; background: #fafafa; display: flex; flex-direction: column; }
+        .input-area { display: flex; gap: 10px; }
+        input { flex: 1; padding: 12px; border: 1px solid #ccc; border-radius: 25px; outline: none; }
+        button { padding: 10px 20px; border: none; border-radius: 25px; cursor: pointer; transition: 0.3s; font-weight: bold; }
+        .btn-chat { background-color: #3498db; color: white; }
+        .btn-img { background-color: #2ecc71; color: white; }
+        .footer { text-align: center; margin-top: 15px; font-size: 12px; color: #7f8c8d; }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h1>🤖 سیسۆ ئای ئای پرۆ</h1>
-    <p class="subtitle">بکارئینانا Puter.js بۆ چات و دروستکرنا وێنەیان ب بێ کلیل</p>
+<div class="chat-container">
+    <h1>🤖 Sidad Tech</h1>
+    <p style="text-align: center; font-size: 14px; color: #666;">پوتەر ئای ئای ب شێوەزارێ بادینی</p>
+    
+    <div id="chat-box"></div>
 
-    <div class="box">
-        <textarea id="userInput" rows="3" placeholder="تشتەکێ بنڤیسە... (بۆ نموونە: وێنەیەکێ باژێرێ زاخۆ چێکە)"></textarea>
-        
-        <div class="btn-group">
-            <button class="btn-chat" onclick="askAI()">💬 پرسیار بکە</button>
-            <button class="btn-image" onclick="generateImage()">🎨 وێنەی چێکە</button>
-        </div>
-        <div id="loader" class="loading">ل چاڤەڕێ بن، AI یێ کار دکەت... 🚀</div>
+    <div class="input-area">
+        <input type="text" id="user-input" placeholder="تشتەکێ بنڤیسە...">
+        <button class="btn-chat" onclick="sendMessage()">💬</button>
+        <button class="btn-img" onclick="generateImage()">🎨</button>
     </div>
 
-    <div id="result">بەرسڤ ل ڤێرە دێ دیار بیت... ✨</div>
-    <img id="imageResult" src="" alt="AI Generated Image">
-
-    <div style="margin-top: 30px; font-size: 12px; color: #94a3b8;">
-        گێشەپێدان: Sedad Ahmad | Siso0o
-    </div>
+    <div class="footer">گێشەپێدان: Sedad Ahmad | Siso0o</div>
 </div>
 
 <script>
-    const loader = document.getElementById('loader');
-    const resultDiv = document.getElementById('result');
-    const imgElement = document.getElementById('imageResult');
+    async function sendMessage() {
+        const input = document.getElementById('user-input');
+        const box = document.getElementById('chat-box');
+        if (!input.value) return;
 
-    // بەشێ چاتێ
-    async function askAI() {
-        const text = document.getElementById('userInput').value;
-        if(!text) return alert("تکایە تشتەکێ بنڤیسە!");
-
-        imgElement.style.display = 'none';
-        resultDiv.innerText = "";
-        loader.style.display = 'block';
+        box.innerHTML += `<div><b>تۆ:</b> ${input.value}</div>`;
+        const userInput = input.value;
+        input.value = '';
 
         try {
-            const response = await puter.ai.chat(text);
-            resultDiv.innerText = response;
-        } catch (error) {
-            resultDiv.innerText = "ئاریشەیەک هەبوو: " + error;
-        } finally {
-            loader.style.display = 'none';
+            // ئەڤە لایێ گرنگە بۆ بادینی ئاخفتنێ
+            const response = await puter.ai.chat(
+                `تۆ یاریدەدەرێکی زیرەکی ب ناڤێ "Sidad Tech". 
+                دڤێت تەنێ ب زمانێ کوردی شێوەزارێ بادینی بەرسڤێ بدەی. 
+                هەمی بەرسڤێن تە با بلا ب شێوەیێ (ئەز، من، تە، هاتی، چۆیی) بن وەک خەلکێ زاخۆ و دهۆکێ.`, 
+                userInput
+            );
+            box.innerHTML += `<div style="color: #2980b9; margin-top: 5px;"><b>Sidad Tech:</b> ${response}</div>`;
+        } catch (err) {
+            box.innerHTML += `<div style="color: red;">کێشەیەک چێبوو!</div>`;
         }
+        box.scrollTop = box.scrollHeight;
     }
 
-    // بەشێ دروستکرنا وێنەیان
     async function generateImage() {
-        const text = document.getElementById('userInput').value;
-        if(!text) return alert("تکایە وەسفەکێ بۆ وێنەی بنڤیسە!");
+        const input = document.getElementById('user-input');
+        const box = document.getElementById('chat-box');
+        if (!input.value) return;
 
-        resultDiv.innerText = "یێ وێنەی دروست دکەت... 🎨";
-        imgElement.style.display = 'none';
-        loader.style.display = 'block';
-
+        box.innerHTML += `<div><b>تۆ:</b> داخوازا وێنەی دکەی...</div>`;
         try {
-            const image = await puter.ai.txt2img(text);
-            imgElement.src = image.src;
-            imgElement.style.display = 'block';
-            resultDiv.innerText = "وێنە ب سەرکەفتی هاتە دروستکرن! ✅";
-        } catch (error) {
-            resultDiv.innerText = "ئاریشەیەک هەبوو د دروستکرنا وێنەی دا.";
-        } finally {
-            loader.style.display = 'none';
+            const img = await puter.ai.txt2img(input.value);
+            box.appendChild(img);
+        } catch (err) {
+            box.innerHTML += `<div style="color: red;">کێشە د وێنەی دا هەیە!</div>`;
         }
+        input.value = '';
+        box.scrollTop = box.scrollHeight;
     }
 </script>
 
