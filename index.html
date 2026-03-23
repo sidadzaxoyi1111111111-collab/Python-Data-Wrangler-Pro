@@ -7,55 +7,61 @@
     <script src="https://js.puter.com/v2/"></script>
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f4f9; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .chat-container { width: 100%; max-width: 500px; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
-        h1 { color: #2c3e50; text-align: center; font-size: 24px; margin-bottom: 20px; }
-        #chat-box { height: 300px; overflow-y: auto; border: 1px solid #ddd; padding: 10px; margin-bottom: 15px; border-radius: 10px; background: #fafafa; display: flex; flex-direction: column; }
-        .input-area { display: flex; gap: 10px; }
-        input { flex: 1; padding: 12px; border: 1px solid #ccc; border-radius: 25px; outline: none; }
-        button { padding: 10px 20px; border: none; border-radius: 25px; cursor: pointer; transition: 0.3s; font-weight: bold; }
+        .chat-container { width: 100%; max-width: 500px; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); border: 2px solid #3498db; }
+        h1 { color: #2c3e50; text-align: center; font-size: 24px; margin-bottom: 10px; }
+        #chat-box { height: 350px; overflow-y: auto; border: 1px solid #ddd; padding: 10px; margin-bottom: 15px; border-radius: 10px; background: #fafafa; display: flex; flex-direction: column; gap: 10px; }
+        .input-area { display: flex; gap: 8px; }
+        input { flex: 1; padding: 12px; border: 2px solid #eee; border-radius: 25px; outline: none; transition: 0.3s; }
+        input:focus { border-color: #3498db; }
+        button { padding: 10px 18px; border: none; border-radius: 25px; cursor: pointer; transition: 0.3s; font-weight: bold; font-size: 18px; }
         .btn-chat { background-color: #3498db; color: white; }
         .btn-img { background-color: #2ecc71; color: white; }
-        .footer { text-align: center; margin-top: 15px; font-size: 12px; color: #7f8c8d; }
+        .footer { text-align: center; margin-top: 15px; font-size: 11px; color: #7f8c8d; }
+        img { max-width: 100%; border-radius: 10px; margin-top: 10px; border: 1px solid #ddd; }
     </style>
 </head>
 <body>
 
 <div class="chat-container">
     <h1>🤖 Sidad Tech</h1>
-    <p style="text-align: center; font-size: 14px; color: #666;">پوتەر ئای ئای ب شێوەزارێ بادینی</p>
+    <p style="text-align: center; font-size: 12px; color: #34495e; margin-bottom: 15px;">زاخۆ - دهۆک AI سیستم</p>
     
     <div id="chat-box"></div>
 
     <div class="input-area">
-        <input type="text" id="user-input" placeholder="تشتەکێ بنڤیسە...">
-        <button class="btn-chat" onclick="sendMessage()">💬</button>
-        <button class="btn-img" onclick="generateImage()">🎨</button>
+        <input type="text" id="user-input" placeholder="پرسیارەکێ ب بادینی بکە...">
+        <button class="btn-chat" title="چات" onclick="sendMessage()">💬</button>
+        <button class="btn-img" title="وێنە" onclick="generateImage()">🎨</button>
     </div>
 
-    <div class="footer">گێشەپێدان: Sedad Ahmad | Siso0o</div>
+    <div class="footer">گەشەپێدان: Sedad Ahmad | Siso0o</div>
 </div>
 
 <script>
+    // ئەڤ بەشە دێ پشت ڕاست بیت کا پوتەر یێ کارایە یان نە
     async function sendMessage() {
         const input = document.getElementById('user-input');
         const box = document.getElementById('chat-box');
-        if (!input.value) return;
+        const text = input.value.trim();
+        
+        if (!text) return;
 
-        box.innerHTML += `<div><b>تۆ:</b> ${input.value}</div>`;
-        const userInput = input.value;
+        box.innerHTML += `<div style="text-align: right; background: #e1f5fe; padding: 8px; border-radius: 10px; align-self: flex-start;"><b>تۆ:</b> ${text}</div>`;
         input.value = '';
+        box.scrollTop = box.scrollHeight;
 
         try {
-            // ئەڤە لایێ گرنگە بۆ بادینی ئاخفتنێ
+            // فەرمانا چاتی دگەل مۆدێلێ بادینی
             const response = await puter.ai.chat(
                 `تۆ یاریدەدەرێکی زیرەکی ب ناڤێ "Sidad Tech". 
-                دڤێت تەنێ ب زمانێ کوردی شێوەزارێ بادینی بەرسڤێ بدەی. 
-                هەمی بەرسڤێن تە با بلا ب شێوەیێ (ئەز، من، تە، هاتی، چۆیی) بن وەک خەلکێ زاخۆ و دهۆکێ.`, 
-                userInput
+                دڤێت تەنێ ب زمانێ کوردی شێوەزارێ بادینی (زاخۆ و دهۆک) بەرسڤێ بدەی. 
+                بەرسڤێن تە با بلا کورت و ب مفابن.`, 
+                text
             );
-            box.innerHTML += `<div style="color: #2980b9; margin-top: 5px;"><b>Sidad Tech:</b> ${response}</div>`;
+            box.innerHTML += `<div style="text-align: left; background: #f1f1f1; padding: 8px; border-radius: 10px; align-self: flex-end; color: #2c3e50;"><b>Sidad Tech:</b> ${response}</div>`;
         } catch (err) {
-            box.innerHTML += `<div style="color: red;">کێشەیەک چێبوو!</div>`;
+            console.error("Error Details:", err);
+            box.innerHTML += `<div style="color: red; font-size: 12px; text-align: center;">⚠️ کێشەیەک د پەیوەندیێ دا هەبوو. هیڤییە لاپەرەی "Refresh" بکە یان دوبارە Login ببە.</div>`;
         }
         box.scrollTop = box.scrollHeight;
     }
@@ -63,14 +69,20 @@
     async function generateImage() {
         const input = document.getElementById('user-input');
         const box = document.getElementById('chat-box');
-        if (!input.value) return;
+        const text = input.value.trim();
+        
+        if (!text) return;
 
-        box.innerHTML += `<div><b>تۆ:</b> داخوازا وێنەی دکەی...</div>`;
+        box.innerHTML += `<div style="text-align: center; color: #7f8c8d;">⌛ چاڤەڕێ بە، وێنە دهێتە دروستکرن...</div>`;
+        
         try {
-            const img = await puter.ai.txt2img(input.value);
-            box.appendChild(img);
+            // پوتەر پێدڤی ب فەرمانا ئینگلیزی هەیە بۆ وێنەیان
+            const img = await puter.ai.txt2img(text);
+            const imgElement = document.createElement('img');
+            imgElement.src = img.src;
+            box.appendChild(imgElement);
         } catch (err) {
-            box.innerHTML += `<div style="color: red;">کێشە د وێنەی دا هەیە!</div>`;
+            box.innerHTML += `<div style="color: red; font-size: 12px; text-align: center;">❌ نەشێم وێنەی دروست کەم. دوبارە تاقی بکە.</div>`;
         }
         input.value = '';
         box.scrollTop = box.scrollHeight;
