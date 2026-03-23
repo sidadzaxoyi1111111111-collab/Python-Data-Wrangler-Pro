@@ -3,53 +3,42 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Siso AI - Puter.js</title>
+    <title>Siso AI Pro - Puter.js Edition</title>
     <script src="https://js.puter.com/v2/"></script>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; direction: rtl; text-align: center; padding: 40px; background-color: #f0f2f5; color: #333; }
-        .card { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); max-width: 600px; margin: auto; }
-        h1 { color: #007bff; }
-        input { width: 90%; padding: 12px; margin: 15px 0; border: 2px solid #ddd; border-radius: 8px; font-size: 16px; outline: none; }
-        input:focus { border-color: #007bff; }
-        button { padding: 12px 25px; background-color: #007bff; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; transition: 0.3s; }
-        button:hover { background-color: #0056b3; }
-        #response { margin-top: 25px; padding: 20px; background: #f8f9fa; border-right: 5px solid #007bff; border-radius: 8px; text-align: right; line-height: 1.6; min-height: 60px; white-space: pre-wrap; }
-        .footer { margin-top: 20px; font-size: 12px; color: #777; }
+        :root { --primary: #007bff; --secondary: #6c757d; --dark: #1f2937; --light: #f9fafb; }
+        body { font-family: 'Segoe UI', sans-serif; direction: rtl; background: var(--light); margin: 0; padding: 20px; color: var(--dark); }
+        .container { max-width: 800px; margin: auto; background: white; padding: 30px; border-radius: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); }
+        h1 { color: var(--primary); font-size: 2rem; margin-bottom: 10px; }
+        .badge { background: #e1effe; color: #1e429f; padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: bold; }
+        
+        .tab-container { display: flex; gap: 10px; margin: 20px 0; border-bottom: 2px solid #eee; padding-bottom: 10px; }
+        .tab { cursor: pointer; padding: 10px 20px; border-radius: 8px; transition: 0.3s; font-weight: bold; }
+        .tab.active { background: var(--primary); color: white; }
+
+        input, textarea { width: 100%; padding: 15px; border: 2px solid #eee; border-radius: 12px; margin: 10px 0; box-sizing: border-box; font-size: 16px; outline: none; }
+        button { width: 100%; padding: 15px; background: var(--primary); color: white; border: none; border-radius: 12px; font-size: 18px; font-weight: bold; cursor: pointer; transition: 0.3s; }
+        button:hover { background: #0056b3; transform: translateY(-2px); }
+
+        #output { margin-top: 25px; padding: 20px; background: #fff; border: 1px solid #eee; border-radius: 12px; min-height: 100px; text-align: right; white-space: pre-wrap; position: relative; }
+        .img-result { max-width: 100%; border-radius: 12px; margin-top: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        .loading { color: var(--primary); font-weight: bold; display: none; }
     </style>
 </head>
 <body>
 
-<div class="card">
-    <h1>🤖 سیسۆ ئای ئای (بێ کلیل)</h1>
-    <p>هەر پرسیارەکێ تە هەبیت ل ڤێرە بنڤیسە:</p>
-    
-    <input type="text" id="userInput" placeholder="بۆ نموونە: پایتۆن چییە؟">
-    <br>
-    <button onclick="askAI()">بپرسە ل AI</button>
+<div class="container">
+    <h1>🤖 Siso AI Pro <span class="badge">V1.0 (No-Key)</span></h1>
+    <p>بکارئینانا هێزا GPT-5 و Gemini ب بێ کلیلەکا نهێنی</p>
 
-    <div id="response">بەرسڤ ل ڤێرە دێ دیار بیت... ✨</div>
-    
-    <div class="footer">گێشەپێدان: Sedad Ahmad | بکارئینانا Puter.js</div>
-</div>
+    <div class="tab-container">
+        <div id="chatTab" class="tab active" onclick="switchMode('chat')">💬 چات (Text)</div>
+        <div id="imageTab" class="tab" onclick="switchMode('image')">🎨 وێنە (Image)</div>
+    </div>
 
-<script>
-    async function askAI() {
-        const input = document.getElementById('userInput').value;
-        const resDiv = document.getElementById('response');
-        
-        if(!input) return alert("تکایە تشتەکێ بنڤیسە!");
+    <div id="inputSection">
+        <textarea id="userInput" rows="3" placeholder="لێرە بنڤیسە..."></textarea>
+        <button id="actionBtn" onclick="process()">دەستپێبکە 🚀</button>
+    </div>
 
-        resDiv.innerHTML = "<i>ل چاڤەڕێ بن... 🚀</i>";
-
-        try {
-            // ئەڤە مۆدێلێ GPT-4o-mini یان GPT-5.4 ب بێ کلیل بانگ دکەت
-            const response = await puter.ai.chat(input);
-            resDiv.innerText = response;
-        } catch (error) {
-            resDiv.innerText = "ببورە، ئاریشەیەک هەبوو: " + error;
-        }
-    }
-</script>
-
-</body>
-</html>
+    <div id="loading" class="loading">ل چاڤەڕێ بن، AI یێ کار دکەت... ⏳
