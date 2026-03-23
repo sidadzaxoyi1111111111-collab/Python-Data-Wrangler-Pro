@@ -1,1 +1,55 @@
+<!DOCTYPE html>
+<html lang="ku">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Siso AI - Puter.js</title>
+    <script src="https://js.puter.com/v2/"></script>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; direction: rtl; text-align: center; padding: 40px; background-color: #f0f2f5; color: #333; }
+        .card { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); max-width: 600px; margin: auto; }
+        h1 { color: #007bff; }
+        input { width: 90%; padding: 12px; margin: 15px 0; border: 2px solid #ddd; border-radius: 8px; font-size: 16px; outline: none; }
+        input:focus { border-color: #007bff; }
+        button { padding: 12px 25px; background-color: #007bff; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; transition: 0.3s; }
+        button:hover { background-color: #0056b3; }
+        #response { margin-top: 25px; padding: 20px; background: #f8f9fa; border-right: 5px solid #007bff; border-radius: 8px; text-align: right; line-height: 1.6; min-height: 60px; white-space: pre-wrap; }
+        .footer { margin-top: 20px; font-size: 12px; color: #777; }
+    </style>
+</head>
+<body>
 
+<div class="card">
+    <h1>🤖 سیسۆ ئای ئای (بێ کلیل)</h1>
+    <p>هەر پرسیارەکێ تە هەبیت ل ڤێرە بنڤیسە:</p>
+    
+    <input type="text" id="userInput" placeholder="بۆ نموونە: پایتۆن چییە؟">
+    <br>
+    <button onclick="askAI()">بپرسە ل AI</button>
+
+    <div id="response">بەرسڤ ل ڤێرە دێ دیار بیت... ✨</div>
+    
+    <div class="footer">گێشەپێدان: Sedad Ahmad | بکارئینانا Puter.js</div>
+</div>
+
+<script>
+    async function askAI() {
+        const input = document.getElementById('userInput').value;
+        const resDiv = document.getElementById('response');
+        
+        if(!input) return alert("تکایە تشتەکێ بنڤیسە!");
+
+        resDiv.innerHTML = "<i>ل چاڤەڕێ بن... 🚀</i>";
+
+        try {
+            // ئەڤە مۆدێلێ GPT-4o-mini یان GPT-5.4 ب بێ کلیل بانگ دکەت
+            const response = await puter.ai.chat(input);
+            resDiv.innerText = response;
+        } catch (error) {
+            resDiv.innerText = "ببورە، ئاریشەیەک هەبوو: " + error;
+        }
+    }
+</script>
+
+</body>
+</html>
