@@ -26,7 +26,7 @@ if prompt := st.chat_input("پرسیارەکەت بنووسە..."):
     with st.chat_message("assistant"):
         with st.spinner("چاوەڕێ بکە..."):
             response = client.messages.create(
-                model="claude-sonnet-4-20250514",
+                model="claude-haiku-4-5-20251001",
                 max_tokens=1000,
                 system="تۆ چاتبۆتێکی زیرەکی. بادینی، کوردی، ئینگلیزی، عەرەبی دەزانیت. بە زمانی بەکارهێنەر وەڵام بدەرەوە.",
                 messages=st.session_state.messages
