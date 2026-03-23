@@ -1,44 +1,99 @@
 <!DOCTYPE html>
-<html lang="ku">
+<html lang="ku" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Siso AI Pro - Puter.js Edition</title>
+    <title>Siso AI Pro - Puter.js</title>
     <script src="https://js.puter.com/v2/"></script>
     <style>
-        :root { --primary: #007bff; --secondary: #6c757d; --dark: #1f2937; --light: #f9fafb; }
-        body { font-family: 'Segoe UI', sans-serif; direction: rtl; background: var(--light); margin: 0; padding: 20px; color: var(--dark); }
-        .container { max-width: 800px; margin: auto; background: white; padding: 30px; border-radius: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); }
-        h1 { color: var(--primary); font-size: 2rem; margin-bottom: 10px; }
-        .badge { background: #e1effe; color: #1e429f; padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: bold; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; margin: 0; padding: 20px; text-align: center; }
+        .container { max-width: 700px; margin: auto; background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+        h1 { color: #2563eb; margin-bottom: 5px; }
+        p.subtitle { color: #64748b; font-size: 14px; margin-bottom: 25px; }
         
-        .tab-container { display: flex; gap: 10px; margin: 20px 0; border-bottom: 2px solid #eee; padding-bottom: 10px; }
-        .tab { cursor: pointer; padding: 10px 20px; border-radius: 8px; transition: 0.3s; font-weight: bold; }
-        .tab.active { background: var(--primary); color: white; }
+        .box { border: 2px solid #e2e8f0; border-radius: 15px; padding: 20px; margin-bottom: 20px; background: #f8fafc; }
+        textarea { width: 100%; padding: 12px; border: 1.5px solid #cbd5e1; border-radius: 10px; font-size: 16px; outline: none; resize: none; box-sizing: border-box; }
+        
+        .btn-group { display: flex; gap: 10px; margin-top: 15px; }
+        button { flex: 1; padding: 12px; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; font-size: 16px; transition: 0.3s; color: white; }
+        .btn-chat { background-color: #2563eb; }
+        .btn-image { background-color: #059669; }
+        button:hover { opacity: 0.85; transform: translateY(-2px); }
 
-        input, textarea { width: 100%; padding: 15px; border: 2px solid #eee; border-radius: 12px; margin: 10px 0; box-sizing: border-box; font-size: 16px; outline: none; }
-        button { width: 100%; padding: 15px; background: var(--primary); color: white; border: none; border-radius: 12px; font-size: 18px; font-weight: bold; cursor: pointer; transition: 0.3s; }
-        button:hover { background: #0056b3; transform: translateY(-2px); }
-
-        #output { margin-top: 25px; padding: 20px; background: #fff; border: 1px solid #eee; border-radius: 12px; min-height: 100px; text-align: right; white-space: pre-wrap; position: relative; }
-        .img-result { max-width: 100%; border-radius: 12px; margin-top: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
-        .loading { color: var(--primary); font-weight: bold; display: none; }
+        #result { margin-top: 25px; padding: 15px; background: #ffffff; border-right: 4px solid #2563eb; border-radius: 8px; text-align: right; min-height: 50px; line-height: 1.6; }
+        #imageResult { margin-top: 20px; max-width: 100%; border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); display: none; }
+        .loading { font-size: 14px; color: #64748b; display: none; margin-top: 10px; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>🤖 Siso AI Pro <span class="badge">V1.0 (No-Key)</span></h1>
-    <p>بکارئینانا هێزا GPT-5 و Gemini ب بێ کلیلەکا نهێنی</p>
+    <h1>🤖 سیسۆ ئای ئای پرۆ</h1>
+    <p class="subtitle">بکارئینانا Puter.js بۆ چات و دروستکرنا وێنەیان ب بێ کلیل</p>
 
-    <div class="tab-container">
-        <div id="chatTab" class="tab active" onclick="switchMode('chat')">💬 چات (Text)</div>
-        <div id="imageTab" class="tab" onclick="switchMode('image')">🎨 وێنە (Image)</div>
+    <div class="box">
+        <textarea id="userInput" rows="3" placeholder="تشتەکێ بنڤیسە... (بۆ نموونە: وێنەیەکێ باژێرێ زاخۆ چێکە)"></textarea>
+        
+        <div class="btn-group">
+            <button class="btn-chat" onclick="askAI()">💬 پرسیار بکە</button>
+            <button class="btn-image" onclick="generateImage()">🎨 وێنەی چێکە</button>
+        </div>
+        <div id="loader" class="loading">ل چاڤەڕێ بن، AI یێ کار دکەت... 🚀</div>
     </div>
 
-    <div id="inputSection">
-        <textarea id="userInput" rows="3" placeholder="لێرە بنڤیسە..."></textarea>
-        <button id="actionBtn" onclick="process()">دەستپێبکە 🚀</button>
-    </div>
+    <div id="result">بەرسڤ ل ڤێرە دێ دیار بیت... ✨</div>
+    <img id="imageResult" src="" alt="AI Generated Image">
 
-    <div id="loading" class="loading">ل چاڤەڕێ بن، AI یێ کار دکەت... ⏳
+    <div style="margin-top: 30px; font-size: 12px; color: #94a3b8;">
+        گێشەپێدان: Sedad Ahmad | Siso0o
+    </div>
+</div>
+
+<script>
+    const loader = document.getElementById('loader');
+    const resultDiv = document.getElementById('result');
+    const imgElement = document.getElementById('imageResult');
+
+    // بەشێ چاتێ
+    async function askAI() {
+        const text = document.getElementById('userInput').value;
+        if(!text) return alert("تکایە تشتەکێ بنڤیسە!");
+
+        imgElement.style.display = 'none';
+        resultDiv.innerText = "";
+        loader.style.display = 'block';
+
+        try {
+            const response = await puter.ai.chat(text);
+            resultDiv.innerText = response;
+        } catch (error) {
+            resultDiv.innerText = "ئاریشەیەک هەبوو: " + error;
+        } finally {
+            loader.style.display = 'none';
+        }
+    }
+
+    // بەشێ دروستکرنا وێنەیان
+    async function generateImage() {
+        const text = document.getElementById('userInput').value;
+        if(!text) return alert("تکایە وەسفەکێ بۆ وێنەی بنڤیسە!");
+
+        resultDiv.innerText = "یێ وێنەی دروست دکەت... 🎨";
+        imgElement.style.display = 'none';
+        loader.style.display = 'block';
+
+        try {
+            const image = await puter.ai.txt2img(text);
+            imgElement.src = image.src;
+            imgElement.style.display = 'block';
+            resultDiv.innerText = "وێنە ب سەرکەفتی هاتە دروستکرن! ✅";
+        } catch (error) {
+            resultDiv.innerText = "ئاریشەیەک هەبوو د دروستکرنا وێنەی دا.";
+        } finally {
+            loader.style.display = 'none';
+        }
+    }
+</script>
+
+</body>
+</html>
