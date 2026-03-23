@@ -1,18 +1,25 @@
-import anthropic
 import streamlit as st
+import google.generativeai as genai
 
 st.set_page_config(page_title="Sidad AI", page_icon="🤖")
 st.title("🤖 Sidad AI")
 st.divider()
 
-api_key = st.secrets["ANTHROPIC_API_KEY"]
-client = anthropic.Anthropic(api_key=api_key)
+api_key = st.secrets["GEMINI_API_KEY"]
+genai.configure(api_key=api_key)
+model = genai.GenerativeModel(
+    model_name="gemini-2.0-flash",
+    system_instruction="تۆ چاتبۆتێکی زیرەکی. بادینی، کوردی، ئینگلیزی، عەرەبی دەزانیت. بە زمانی بەکارهێنەر وەڵام بدەرەوە."
+)
 
 if "messages" not in st.session_state:
     st.session_state.messages = []
+if "chat" not in st.session_state:
+    st.session_state.chat = model.start_chat(history=[])
 
 if st.button("🗑️ پاككردن"):
     st.session_state.messages = []
+    st.session_state.chat = model.start_chat(history=[])
     st.rerun()
 
 for msg in st.session_state.messages:
@@ -26,18 +33,8 @@ if prompt := st.chat_input("پرسیارەکەت بنووسە..."):
     with st.chat_message("assistant"):
         with st.spinner("چاوەڕێ بکە..."):
             try:
-                # تەنیا مێژووی پێویست بنێرە
-                history = [
-                    {"role": m["role"], "content": str(m["content"])}
-                    for m in st.session_state.messages
-                ]
-                response = client.messages.create(
-                    model="claude-3-5-haiku-20241022",
-                    max_tokens=1000,
-                    system="تۆ چاتبۆتێکی زیرەکی. بادینی، کوردی، ئینگلیزی، عەرەبی دەزانیت. بە زمانی بەکارهێنەر وەڵام بدەرەوە.",
-                    messages=history
-                )
-                reply = response.content[0].text
+                response = st.session_state.chat.send_message(prompt)
+                reply = response.text
                 st.write(reply)
                 st.session_state.messages.append({"role": "assistant", "content": reply})
             except Exception as e:
