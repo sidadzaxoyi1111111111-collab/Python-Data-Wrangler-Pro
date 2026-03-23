@@ -25,12 +25,20 @@ if prompt := st.chat_input("پرسیارەکەت بنووسە..."):
         st.write(prompt)
     with st.chat_message("assistant"):
         with st.spinner("چاوەڕێ بکە..."):
-            response = client.messages.create(
-                model="claude-haiku-4-5-20251001",
-                max_tokens=1000,
-                system="تۆ چاتبۆتێکی زیرەکی. بادینی، کوردی، ئینگلیزی، عەرەبی دەزانیت. بە زمانی بەکارهێنەر وەڵام بدەرەوە.",
-                messages=st.session_state.messages
-            )
-            reply = response.content[0].text
-            st.write(reply)
-            st.session_state.messages.append({"role": "assistant", "content": reply})
+            try:
+                # تەنیا مێژووی پێویست بنێرە
+                history = [
+                    {"role": m["role"], "content": str(m["content"])}
+                    for m in st.session_state.messages
+                ]
+                response = client.messages.create(
+                    model="claude-3-5-haiku-20241022",
+                    max_tokens=1000,
+                    system="تۆ چاتبۆتێکی زیرەکی. بادینی، کوردی، ئینگلیزی، عەرەبی دەزانیت. بە زمانی بەکارهێنەر وەڵام بدەرەوە.",
+                    messages=history
+                )
+                reply = response.content[0].text
+                st.write(reply)
+                st.session_state.messages.append({"role": "assistant", "content": reply})
+            except Exception as e:
+                st.error(f"کێشەیەک هەیە: {str(e)}")
