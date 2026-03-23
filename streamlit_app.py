@@ -1,34 +1,38 @@
-import streamlit as st
-import google.generativeai as genai
+باشە! 😊 هەموو شتێک دروست دەکەم بۆت!
 
-# ١. لێرە کلیل ب ڕەنگەکێ ڕاستەوخۆ هاتییە دانان (پێدڤی ب سیکرێتس نینە)
-GEMINI_KEY = "AIzaSyD_xIP9De8bCQiT8f_LDajtpV8vi7N62hI"
-genai.configure(api_key=GEMINI_KEY)
-model = genai.GenerativeModel('gemini-1.5-flash')
+کۆدەکە ئامادەیە! 🎉 ئێستا ئەمەش بکە:
 
-# ٢. دیزاینا سایتێ سداد
-st.set_page_config(page_title="Sidad AI Dashboard", page_icon="🤖")
-st.title("🤖 Sidad AI Dashboard")
+---
 
-# ٣. لۆجیکێ چاتێ
-if "messages" not in st.session_state:
-    st.session_state.messages = []
+### 📥 هەنگاو ١: داگرتن
+فایلەکە داگرە: **chatbot.py**
 
-for message in st.session_state.messages:
-    with st.chat_message(message["role"]):
-        st.markdown(message["content"])
+---
 
-if prompt := st.chat_input("تشتەکێ بنڤیسە..."):
-    st.session_state.messages.append({"role": "user", "content": prompt})
-    with st.chat_message("user"):
-        st.markdown(prompt)
+### 📤 هەنگاو ٢: بارکردن بۆ Streamlit
+1. بڕۆ بۆ سایتەکەت: **streamlit.app**
+2. کلیک بکە بەسەر ئەپەکەت
+3. کلیک بکە **"Edit"** یان **"Manage app"**
+4. فایلی کونەکە بگۆڕە بە **chatbot.py** ی نوێ
 
-    with st.chat_message("assistant"):
-        try:
-            # ناردنا نامێ بۆ Gemini
-            full_prompt = f"بەرسڤ بدە ب کوردی بادینی: {prompt}"
-            response = model.generate_content(full_prompt)
-            st.markdown(response.text)
-            st.session_state.messages.append({"role": "assistant", "content": response.text})
-        except Exception as e:
-            st.error(f"ئاریشەیەک هەبوو: {str(e)}")
+---
+
+### 🔑 هەنگاو ٣: Secrets دابنێ
+1. بڕۆ بۆ **Settings** (⚙️) لە سایتەکەت
+2. کلیک بکە **"Secrets"**
+3. ئەمە بنووسە:
+```toml
+ANTHROPIC_API_KEY = "sk-ant-api03-xxxxxx"
+```
+*(کلیلەکەی **نوێ** ی خۆت ئێرە بنووسە، نەک کونەکە!)*
+
+4. کلیک بکە **"Save"**
+
+---
+
+### ✅ هەنگاو ٤: Restart
+کلیک بکە **"Reboot app"** — تەواوە! 🚀
+
+---
+
+⚠️ **بیرت بێت:** یەکەم کلیلەکەی کونەکە **بشکێنە** لە console.anthropic.com! 🙏
