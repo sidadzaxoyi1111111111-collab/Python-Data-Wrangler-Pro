@@ -1,38 +1,48 @@
-باشە! 😊 هەموو شتێک دروست دەکەم بۆت!
+import anthropic
+import streamlit as st
 
-کۆدەکە ئامادەیە! 🎉 ئێستا ئەمەش بکە:
+st.set_page_config(page_title="چاتبۆتی زیرەک 🤖", page_icon="🤖")
+st.title("🤖 چاتبۆتی زیرەک")
+st.divider()
 
----
+try:
+    api_key = st.secrets["ANTHROPIC_API_KEY"]
+except:
+    st.error("کلیل ل سیکرێتس نینن!")
+    st.stop()
 
-### 📥 هەنگاو ١: داگرتن
-فایلەکە داگرە: **chatbot.py**
+client = anthropic.Anthropic(api_key=api_key)
 
----
+SYSTEM_PROMPT = """تۆ چاتبۆتێکی زیرەک و یارمەتیدەری.
+هەمیشە بە هەمان زمانی بەکارهێنەر وەڵام بدەرەوە.
+بادینی، سۆرانی، ئینگلیزی، عەرەبی و زمانی دیکە دەزانیت."""
 
-### 📤 هەنگاو ٢: بارکردن بۆ Streamlit
-1. بڕۆ بۆ سایتەکەت: **streamlit.app**
-2. کلیک بکە بەسەر ئەپەکەت
-3. کلیک بکە **"Edit"** یان **"Manage app"**
-4. فایلی کونەکە بگۆڕە بە **chatbot.py** ی نوێ
+if "messages" not in st.session_state:
+    st.session_state.messages = []
 
----
+if st.button("🗑️ پاككردن"):
+    st.session_state.messages = []
+    st.rerun()
 
-### 🔑 هەنگاو ٣: Secrets دابنێ
-1. بڕۆ بۆ **Settings** (⚙️) لە سایتەکەت
-2. کلیک بکە **"Secrets"**
-3. ئەمە بنووسە:
-```toml
-ANTHROPIC_API_KEY = "sk-ant-api03-xxxxxx"
-```
-*(کلیلەکەی **نوێ** ی خۆت ئێرە بنووسە، نەک کونەکە!)*
+for msg in st.session_state.messages:
+    with st.chat_message(msg["role"]):
+        st.write(msg["content"])
 
-4. کلیک بکە **"Save"**
-
----
-
-### ✅ هەنگاو ٤: Restart
-کلیک بکە **"Reboot app"** — تەواوە! 🚀
-
----
-
-⚠️ **بیرت بێت:** یەکەم کلیلەکەی کونەکە **بشکێنە** لە console.anthropic.com! 🙏
+if prompt := st.chat_input("پرسیارەکەت بنووسە..."):
+    st.session_state.messages.append({"role": "user", "content": prompt})
+    with st.chat_message("user"):
+        st.write(prompt)
+    with st.chat_message("assistant"):
+        with st.spinner("چاوەڕێ بکە..."):
+            try:
+                response = client.messages.create(
+                    model="claude-sonnet-4-20250514",
+                    max_tokens=1000,
+                    system=SYSTEM_PROMPT,
+                    messages=st.session_state.messages
+                )
+                reply = response.content[0].text
+                st.write(reply)
+                st.session_state.messages.append({"role": "assistant", "content": reply})
+            except Exception as e:
+                st.error(f"کێشەیەک هەیە: {str(e)}")
