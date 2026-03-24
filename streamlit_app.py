@@ -1,34 +1,41 @@
 import streamlit as st
 import google.generativeai as genai
 
-st.set_page_config(page_title="Sidad AI Pro", page_icon="🤖")
+# ڕێکخستنا لاپەری
+st.set_page_config(page_title="Sidad AI Wrangler", page_icon="🤖")
 
-# ١. ڕاکێشانا کلیلێ
+# ١. پشکنینا کلیلێ ژ Secrets
 if "GEMINI_API_KEY" in st.secrets:
-    api_key = st.secrets["GEMINI_API_KEY"]
-    genai.configure(api_key=api_key)
+    API_KEY = st.secrets["GEMINI_API_KEY"]
     
-    st.title("🤖 Sidad AI Wrangler")
-    st.success("✅ کلیل یا چالاکە!")
-
-    # ٢. بکارئینانا مۆدێلێ Gemini Pro (کو پتر دهێتە قەبوول کرن)
     try:
-        model = genai.GenerativeModel('gemini-pro') 
+        # ڕێکخستنا API ب ڤێرژنا نوی
+        genai.configure(api_key=API_KEY)
         
-        user_input = st.text_input("پرسیارەکێ ب زمانێ کوردی (زاخۆیی) بکە:")
+        # گوهۆرینا ناڤێ مۆدێلی بۆ شێوازێ فەرمی یێ گوگل
+        model = genai.GenerativeModel('models/gemini-1.5-flash')
+        
+        st.title("🤖 Sidad AI Wrangler")
+        st.success("✅ پیرۆزە سداد! نوکە مێشکێ AI یێ گرێدایە.")
+
+        user_input = st.text_input("ب زاخۆیی پرسیارەکێ بکە:")
         
         if user_input:
             with st.spinner('دێ مێشکێ خۆ گەرم کەم...'):
+                # فەرمان بۆ AI ب زمانێ کوردی بادینی
                 prompt = f"بەرسڤا ڤێ بدە ب زمانێ کوردی بادینی (شێوەزارێ زاخۆ): {user_input}"
                 response = model.generate_content(prompt)
-                st.info(f"✅ AI دبیژیت: \n\n {response.text}")
                 
+                if response.text:
+                    st.info(f"✅ AI دبیژیت: \n\n {response.text}")
+                else:
+                    st.warning("⚠️ بەرسڤ نەهات، دبیت کێشەک د ئینتەرنێتێ دا هەبیت.")
+                    
     except Exception as e:
-        # ئەگەر دیسان 404 دا، دێ ڤێرژنەکا دی تاقی کەین
-        st.error(f"❌ ئاریشەک هەبوو: {str(e)}")
-        st.info("سداد برا، ئەگەر هەر 404 دا، بێژە من دا مۆدێلێ 'gemini-1.0-pro' تاقی بکەین.")
+        # ئەگەر دیسان خەلەتی دا، دێ ل ڤێرێ نیشا تە دەت
+        st.error(f"❌ ئاریشە: {str(e)}")
 else:
-    st.error("❌ کلیل نەهاتییە دیتن د Secrets دا!")
+    st.error("❌ سداد! کلیل د بەشێ Secrets دا نەهاتییە دیتن.")
 
 st.markdown("---")
-st.caption("Sidad AI - Optimized for Gemini Pro 🚀")
+st.caption("Sidad AI - Final Fix Mode 🚀")
