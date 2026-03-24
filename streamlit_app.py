@@ -1,37 +1,38 @@
 import streamlit as st
 from openai import OpenAI
 
-# ڕێکخستنا لاپەری
-st.set_page_config(page_title="Sidad AI Wrangler", page_icon="💀")
+# --- [ ڕێکخستنا لاپەری ] ---
+st.set_page_config(page_title="Sidad AI Wrangler", page_icon="🤖")
 
+# --- [ وەرگرتنا کلیلێ ب شێوەیەکێ پاراستی ] ---
 if "DEEPSEEK_API_KEY" in st.secrets:
     try:
-        # ل ڤێرێ پێدڤییە base_url یێ دروست بیت
-        # ئەگەر تو DeepSeek بکاربینی: https://api.deepseek.com
-        # ئەگەر تو سایتەکێ دی یێ مۆدێلان بکاربینی، لینکێ وان دانیە
+        # گرێدان ب سێرڤەرێ فەرمی یێ DeepSeek
         client = OpenAI(
             api_key=st.secrets["DEEPSEEK_API_KEY"],
             base_url="https://api.deepseek.com" 
         )
         
-        st.title("🤖 Sidad AI Wrangler")
-        st.success("✅ کلیل یا گرێدایە!")
+        st.title("🤖 Sidad AI Wrangler (DeepSeek V3.2)")
+        st.success("✅ کلیل یا گرێدایە! نوکە مێشکێ صینی یێ کار دکەت.")
 
-        user_input = st.text_input("ب زاخۆیی پرسیارەکێ بکە:")
+        user_input = st.text_input("پرسیارەکێ ب زاخۆیی بکە (بۆ نموونە: ئەز کێم؟):")
         
         if user_input:
             with st.spinner('دێ مێشکێ خۆ گەرم کەم...'):
+                # بکارئینانا مۆدێلێ چاتێ یێ زیرەک
                 response = client.chat.completions.create(
-                    model="deepseek-chat", # یان "deepseek-reasoner"
+                    model="deepseek-chat", # ئەڤە مۆدێلێ گشتی یێ زیرەکە
                     messages=[
                         {"role": "system", "content": "بەرسڤێ ب کوردی بادینی شێوەزارێ زاخۆ بدە."},
                         {"role": "user", "content": user_input}
                     ]
                 )
-                st.info(f"✅ AI دبیژیت: \n\n {response.choices[0].message.content}")
+                
+                answer = response.choices[0].message.content
+                st.info(f"✅ AI دبیژیت: \n\n {answer}")
                 
     except Exception as e:
-        st.error(f"❌ ئاریشە د ناسنامێ دا (Auth Error): \n\n `{str(e)}` ")
-        st.info("سداد برا، ئەگەر نڤێسیبوو 'Insufficient Balance'، رامانا وێ ئەوە پێدڤی ب پارەیە.")
+        st.error(f"❌ ئاریشە: {str(e)}")
 else:
-    st.error("❌ کلیل د Secrets دا نەهاتییە دیتن!")
+    st.error("❌ سداد! کلیل د Secrets دا نەهاتییە دیتن.")
