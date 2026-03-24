@@ -1,41 +1,39 @@
 import streamlit as st
 import google.generativeai as genai
 
-# ڕێکخستنا لاپەری
 st.set_page_config(page_title="Sidad AI Wrangler", page_icon="🤖")
 
-# ١. پشکنینا کلیلێ ژ Secrets
 if "GEMINI_API_KEY" in st.secrets:
-    API_KEY = st.secrets["GEMINI_API_KEY"]
+    api_key = st.secrets["GEMINI_API_KEY"]
+    genai.configure(api_key=api_key)
     
-    try:
-        # ڕێکخستنا API ب ڤێرژنا نوی
-        genai.configure(api_key=API_KEY)
-        
-        # گوهۆرینا ناڤێ مۆدێلی بۆ شێوازێ فەرمی یێ گوگل
-        model = genai.GenerativeModel('models/gemini-1.5-flash')
-        
-        st.title("🤖 Sidad AI Wrangler")
-        st.success("✅ پیرۆزە سداد! نوکە مێشکێ AI یێ گرێدایە.")
-
-        user_input = st.text_input("ب زاخۆیی پرسیارەکێ بکە:")
-        
-        if user_input:
-            with st.spinner('دێ مێشکێ خۆ گەرم کەم...'):
-                # فەرمان بۆ AI ب زمانێ کوردی بادینی
-                prompt = f"بەرسڤا ڤێ بدە ب زمانێ کوردی بادینی (شێوەزارێ زاخۆ): {user_input}"
-                response = model.generate_content(prompt)
-                
-                if response.text:
-                    st.info(f"✅ AI دبیژیت: \n\n {response.text}")
-                else:
-                    st.warning("⚠️ بەرسڤ نەهات، دبیت کێشەک د ئینتەرنێتێ دا هەبیت.")
+    st.title("🤖 Sidad AI Wrangler")
+    
+    # لیستا مۆدێلێن دبیت کار بکەن
+    model_names = ['gemini-1.5-flash', 'gemini-1.0-pro', 'gemini-pro']
+    
+    user_input = st.text_input("ب زاخۆیی پرسیارەکێ بکە (بۆ نموونە: سڵاو):")
+    
+    if user_input:
+        with st.spinner('دێ مێشکێ خۆ گەرم کەم...'):
+            success = False
+            for m_name in model_names:
+                try:
+                    model = genai.GenerativeModel(m_name)
+                    prompt = f"بەرسڤا ڤێ بدە ب زمانێ کوردی بادینی (شێوەزارێ زاخۆ): {user_input}"
+                    response = model.generate_content(prompt)
                     
-    except Exception as e:
-        # ئەگەر دیسان خەلەتی دا، دێ ل ڤێرێ نیشا تە دەت
-        st.error(f"❌ ئاریشە: {str(e)}")
+                    st.success(f"✅ (Model: {m_name})")
+                    st.info(f"🤖 AI دبیژیت: \n\n {response.text}")
+                    success = True
+                    break # ئەگەر کار کر، دێ ڕاوەستیت
+                except Exception:
+                    continue # ئەگەر کار نەکر، دێ چیتە سەر یێ دی
+            
+            if not success:
+                st.error("❌ سداد برا، چو مۆدێل ل سەر ڤێ کلیلێ کار ناکەن. دبیت کێشە د 'Region' یان 'Version' دا هەبیت.")
 else:
-    st.error("❌ سداد! کلیل د بەشێ Secrets دا نەهاتییە دیتن.")
+    st.error("❌ کلیل نەهاتییە دیتن د Secrets دا!")
 
 st.markdown("---")
-st.caption("Sidad AI - Final Fix Mode 🚀")
+st.caption("Sidad AI - Smart Version Selector 🚀")
