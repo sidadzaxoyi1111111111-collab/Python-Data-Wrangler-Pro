@@ -1,32 +1,35 @@
 import streamlit as st
 import google.generativeai as genai
 
-# --- [ڕاکێشانا کلیلێ ب ڕێکا ستریملێت] ---
-# تێبینی: سداد، ئەڤ کۆدە دێ کلیلێ ژ 'Secrets' یێن تە خوینیت ب بێ دەنگی
-if "GEMINI_API_KEY" in st.secrets:
-    API_KEY = st.secrets["GEMINI_API_KEY"]
-    genai.configure(api_key=API_KEY)
-    model = genai.GenerativeModel('gemini-1.5-flash')
-    
-    st.title("🤖 Sidad Data Wrangler Pro")
-    st.markdown("---")
-    st.write("هەیلا برا سداد! مێشکێ AI نوکە یێ کار دکەت و کلیل یا پاراستی و ڤەشارتییە. 💀🔥")
+# ناڤ و نیشانێن لاپەری
+st.set_page_config(page_title="Sidad Debugger", page_icon="🔍")
 
-    # --- [بەشێ پرسیار و بەرسڤێ] ---
-    user_input = st.text_input("پرسیارەکێ ب زمانێ کوردی (زاخۆیی) بکە:", placeholder="بێژە من چەوا دێ کارێ خۆ باشتر کەم؟")
+st.title("🤖 Sidad Debugger Mode")
+
+# ١. پشکنینا هەبوونا کلیلێ د Secrets دا
+if "GEMINI_API_KEY" in st.secrets:
+    api_key = st.secrets["GEMINI_API_KEY"]
     
-    if user_input:
-        with st.spinner('دێ مێشکێ خۆ گەرم کەم...'):
-            try:
-                # فەرمان بۆ AI دا ب شێوەزارێ بادینی بەرسڤ بدەت
-                prompt = f"بەرسڤا ڤێ بدە ب زمانێ کوردی بادینی (شێوەزارێ زاخۆ): {user_input}"
-                response = model.generate_content(prompt)
-                st.info(f"✅ بەرسڤا AI: \n\n {response.text}")
-            except Exception as e:
-                st.error(f"❌ ئاریشەک هەبوو د مێشکی دا! دبیت کلیل یا مرتی بیت.")
+    try:
+        # ٢. ڕێکخستنا مۆدێلی
+        genai.configure(api_key=api_key)
+        model = genai.GenerativeModel('gemini-1.5-flash')
+        
+        st.success("✅ کلیل د Secrets دا هاتە دیتن.")
+        
+        user_input = st.text_input("تێستەکێ بکە (بنڤێسە سڵاو):")
+        
+        if user_input:
+            # ٣. هەوڵدان بۆ وەرگرتنا بەرسڤێ
+            response = model.generate_content(user_input)
+            st.write(f"🤖 AI دبیژیت: {response.text}")
+            
+    except Exception as e:
+        # ⚠️ ل ڤێرێ دێ ناما خەلەتیێ یا دروست نیشا تە دەت
+        st.error(f"❌ ئاریشە یا هەی! گوگل دبێژیت: \n\n `{str(e)}` ")
+        st.info("سداد برا، ئەگەر نڤێسیبوو 'API key not valid'، رامانا وێ ئەوە کلیل یا سۆتییە.")
 else:
-    st.error("❌ سداد! کلیل د بەشێ Secrets دا نەهاتییە دیتن.")
-    st.info("💡 ل سەر سایتێ ستریملێت، هەرە Settings -> Secrets و کلیلێ ل وێرێ دانیە.")
+    st.error("❌ سداد! کلیل د بەشێ Secrets دا نەهاتییە دیتن. هەرە Settings و دانیە.")
 
 st.markdown("---")
-st.caption("Sidad AI Security Mode: Enabled 🔒")
+st.caption("Sidad Debugging Mode 🛠️")
