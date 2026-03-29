@@ -1,5 +1,4 @@
 streamlit
-requests
 groq
-pyTelegramBotAPI
-ccxt
+pandas
+requests
