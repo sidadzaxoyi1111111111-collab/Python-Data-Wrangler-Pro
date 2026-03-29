@@ -1,48 +1,40 @@
 import streamlit as st
 from groq import Groq
 
-# ١. کێشانا کلیلێ ژ Secrets
-api_key = st.secrets["GROQ_API_KEY"]
-client = Groq(api_key=api_key)
+# ١. گرێدانا کلیلێ
+client = Groq(api_key=st.secrets["GROQ_API_KEY"])
 
-st.title("🤖 Sidad AI - English & Badini")
+st.title("🤖 Sidad AI - Binance Pro")
 
-# ٢. مۆدێلێ جێگیر
 MODEL = "llama-3.3-70b-versatile"
 
-def sidad_chat(text_input): # ل ڤێرە مە گۆڕاو پێناسە کر
+def sidad_pro_analysis(market_info):
     try:
         completion = client.chat.completions.create(
             model=MODEL,
             messages=[
                 {
                     "role": "system", 
-                    "content": "You are Sidad AI. Answer in English first, then in Kurdish Badini dialect (Zakho/Duhok style). Be smart and helpful."
+                    "content": """
+                    You are a High-Frequency Trading Bot for Sidad Ahmad.
+                    Language: STRICTLY ENGLISH.
+                    Task: Analyze the buying and selling price. 
+                    Decision: Instantly say 'PROFIT' or 'LOSS'.
+                    Advice: Explain the percentage and if he should sell NOW.
+                    """
                 },
-                {"role": "user", "content": text_input} # ڤێرە ڕاست بوو
+                {"role": "user", "content": market_info}
             ]
         )
         return completion.choices[0].message.content
     except Exception as e:
-        return f"Error / خەلەتی: {e}"
+        return f"Error: {e}"
 
-# ٣. دروستکرنا شاشا چاتی
-if "messages" not in st.session_state:
-    st.session_state.messages = []
+# ٣. شاشا کارکرنێ
+user_input = st.chat_input("Enter: Buy price, Sell price, and Coin name...")
 
-for message in st.session_state.messages:
-    with st.chat_message(message["role"]):
-        st.markdown(message["content"])
-
-# وەرگرتنا نامەیێ ژ سدادی
-if prompt := st.chat_input("Write here... ل ڤێرێ بنڤیسە"):
-    st.session_state.messages.append({"role": "user", "content": prompt})
-    with st.chat_message("user"):
-        st.markdown(prompt)
-
-    with st.chat_message("assistant"):
-        with st.spinner("Sidad AI is processing..."):
-            # مە 'prompt' فرێکرە ناڤ فۆنکشنێ دا خەلەتی نەمینیت
-            response = sidad_chat(prompt) 
-            st.markdown(response)
-            st.session_state.messages.append({"role": "assistant", "content": response})
+if user_input:
+    with st.spinner("Analyzing Market Data..."):
+        response = sidad_pro_analysis(user_input)
+        st.success("Analysis Complete!")
+        st.markdown(response)
