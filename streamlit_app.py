@@ -24,9 +24,8 @@ with st.sidebar:
     st.info("سداد، تو ٢٥ سالی و ل زاخۆ یی. ئەڤ بوتە یێ پاراستییە.")
 
 # ٥. ئەڤە دێ کێشەیا 404 چارەسەر کەت (بکارئینانا ناڤێ سادە)
-# تێبینی: مە پەیڤا 'models/' لێکرە ڤە چونکی هندەک سێرڤەر ب بێ وێ قەبوول ناکەن
-model_name = 'gemini-1.5-flash'
-model = genai.GenerativeModel(model_name)
+# تێبینی: مە ناڤ کورت کر دا کو ب دروستی کار بکت
+model = genai.GenerativeModel('gemini-pro')
 
 # ٦. وەرگرتنا رسالێ و بەرسڤدان
 user_input = st.chat_input("تشتەکی ب بێژە برا...")
@@ -38,20 +37,17 @@ if user_input:
     with st.chat_message("assistant"):
         with st.spinner("Sidad AI یا یێ فکریە..."):
             try:
+                # تاقی کرن ب مۆدێلێ جێگیر 'gemini-pro'
                 if uploaded_file:
                     img = Image.open(uploaded_file)
-                    response = model.generate_content([user_input, img])
+                    # ئەگەر وێنە هەبیت، دێ مۆدێلێ 'gemini-1.5-flash' بکار ئینیت
+                    vision_model = genai.GenerativeModel('gemini-1.5-flash')
+                    response = vision_model.generate_content([user_input, img])
                 else:
-                    # مەجبورکرنا بوتێ دا ب بادینی بەرسڤ بدەت
+                    # ئەگەر بتنێ دەق بیت، دێ مۆدێلێ 'gemini-pro' بکار ئینیت
                     full_prompt = f"بەرسڤێ ب زمانێ بادینی بدە: {user_input}"
                     response = model.generate_content(full_prompt)
                 
                 st.write(response.text)
             except Exception as e:
-                # ئەگەر دیسا خەلەتی دا، دێ مۆدێلێ 'gemini-pro' تاقی کەت ئۆتۆماتیکی
-                try:
-                    model_backup = genai.GenerativeModel('gemini-pro')
-                    response = model_backup.generate_content(user_input)
-                    st.write(response.text)
-                except:
-                    st.error(f"سداد برا، خەلەتییەکا تەکنیکی هەیە: {e}")
+                st.error(f"سداد برا، خەلەتییەکا تەکنیکی هەیە: {e}")
