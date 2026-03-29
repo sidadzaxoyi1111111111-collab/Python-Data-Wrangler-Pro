@@ -1,23 +1,13 @@
 import streamlit as st
 import google.generativeai as genai
+from PIL import Image
 
-# ١. خویندنا کلیلا ڤەشارتی ژ Secrets
-try:
-    api_key = st.secrets["GEMINI_API_KEY"]
-    genai.configure(api_key=api_key)
-    
-    # ٢. دروستکرنا مۆدێلێ Gemini
-    system_instruction = "ناڤێ تە Sidad AI Agent یە. تو ب بادینی دئاخڤی و ئینگلیزییا تە فولە."
-    model = genai.GenerativeModel('gemini-1.5-pro-latest', system_instruction=system_instruction)
-    
-except KeyError:
-    st.error("سداد برا، من کلیل نەدیت! دڵنیابە تە ناڤێ وێ کرییە GEMINI_API_KEY د ناڤ Secrets دا.")
-    st.stop()
+# ١. ڕێکخستنا لاپەرەی بۆ "Sidad AI Agent"
+st.set_page_config(page_title="Sidad AI Agent", page_icon="🤖", layout="centered")
 
-# ٣. ل ڤێرە تو دشێی "Request" فرێکەی
-user_input = st.chat_input("تشتەکی ب بێژە برا...")
-
-if user_input:
-    with st.chat_message("assistant"):
-        response = model.generate_content(user_input)
-        st.write(response.text)
+# ٢. دیزاینێ سەرەکی یێ سایتێ سداد
+st.markdown("""
+<div style="background-color: #0c1a2c; padding: 20px; border-radius: 15px; text-align: center; border: 1px solid #1f3a5f;">
+    <h1 style="color: white; margin-bottom: 0;">🤖 Sidad AI Agent</h1>
+    <p style="color: #6c99cb; font-size: 18px; direction: rtl;">سڵاو سداد برا، ئەز ل خزمەتا تە دام ب زمانێ بادینی ۆو ئینگلیزی.</p>
+</div>
