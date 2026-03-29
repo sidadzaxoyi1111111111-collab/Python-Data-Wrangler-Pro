@@ -1,35 +1,34 @@
 import streamlit as st
 import os
 
-# --- ناڤ و نیشانێ سایتێ سداد ---
-st.set_page_config(page_title="Sidad AI Monitor", page_icon="🚀")
-st.title("Sidad AI - Crypto Monitor 🚀")
+st.set_page_config(page_title="Sidad AI Chat", page_icon="💬")
+st.title("Sidad AI - Crypto Chat 🚀")
 
-# --- پشکا نیشاندانا نامەیان (Text Messages) ---
-st.subheader("📩 پەیامێن بوتێ تە")
-st.info("سداد برا، بخێر بێی! ئەڤە داتایێن پشکا Spot نە.")
+# --- دروستکرنا فۆڵدەرێ هەلگرتنا نامەیان (وەکی مێژوویا چاتی) ---
+if "messages" not in st.session_state:
+    st.session_state.messages = []
 
-# --- پشکا وێنەیان (Images) ---
-st.subheader("📊 چارتێ بازاڕی")
+# --- نیشاندانا نامەیێن کۆن (وەکی واتساپ) ---
+for message in st.session_state.messages:
+    with st.chat_message(message["role"]):
+        st.markdown(message["content"])
 
-# ناڤێ وێنەیێ تە ل سەر GitHub پێدڤییە "chart.png" بیت
-image_path = "chart.png"
+# --- جهێ نڤیسینا نامەیا نوی (Chat Input) ---
+if prompt := st.chat_input("نامەیا خۆ لێرە بنڤیسە..."):
+    # 1. نیشاندانا نامەیا تە
+    with st.chat_message("user"):
+        st.markdown(prompt)
+    st.session_state.messages.append({"role": "user", "content": prompt})
 
-if os.path.exists(image_path):
-    st.image(image_path, caption="ئاستێ نرخێ SOL/USDT", use_container_width=True)
+    # 2. وەڵاما بوتێ تە (ل ڤێرە بوت دێ بەرسڤێ دەت)
+    response = f"سداد برا، نامەیا تە گەهشت: {prompt}. ئەز نوکە تەماشەی بازاڕی دکەم..."
+    with st.chat_message("assistant"):
+        st.markdown(response)
+    st.session_state.messages.append({"role": "assistant", "content": response})
+
+# --- نیشاندانا وێنەی (ئەگەر هەبیت) ---
+st.sidebar.subheader("📊 چارتێ بازاڕی")
+if os.path.exists("chart.png"):
+    st.sidebar.image("chart.png", caption="SOL/USDT")
 else:
-    # ئەگەر وێنە نەبوو، ئەڤ پەیامە دێ دیار بیت دا Error چێ نەبیت
-    st.warning("⚠️ سداد برا، فایلێ chart.png ل سەر GitHub نەیێ هەین. وێنەیەکێ ب ڤی ناڤی بارکە (Upload).")
-
-# --- پشکا ناردنا نامەیەکێ (Input Text) ---
-st.subheader("💬 نامەیەکێ بۆ بوتێ خۆ بفرێشە")
-user_msg = st.text_input("نامەیا خۆ لێرە بنڤیسە:")
-if st.button("ناردن"):
-    if user_msg:
-        st.success(f"نامەیا تە هاتە وەرگرتن: {user_msg}")
-    else:
-        st.error("تکایە نامەیەکێ بنڤیسە!")
-
-# --- پشکا کلیلێن تە (API Keys) ---
-# سداد برا، ل ڤێرە کلیلێن تە دێ کار کەن وەکی بەرێ
-st.sidebar.write("✅ API Keys Connected")
+    st.sidebar.warning("وێنەیێ chart.png ل سەر GitHub نینە.")
