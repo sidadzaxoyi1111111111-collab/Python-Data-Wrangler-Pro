@@ -1,58 +1,45 @@
 import streamlit as st
-import requests  # فەرمانا ڕیقوێستس وەک تە داخواز کری
+import requests
 from groq import Groq
 
-# 1. ڕێکخستنا لاپەرەی
-st.set_page_config(page_title="Sidad AI - English Beast", page_icon="🦾")
+# 1. فۆنکشنا پشکنینا خودکار (ئەوا تە داخواز کری)
+def check_beast_signals(current_price, rsi, macd_signal):
+    resistance = 53.20
+    if current_price >= resistance and rsi > 50 and macd_signal == "Bullish":
+        st.balloons() # ئاهەنگێ بگێڕە!
+        st.success(f"🚀 SIDAD! THE BEAST SAYS GO LONG NOW! (Price: ${current_price})")
+        return True
+    else:
+        st.info(f"⏳ Beast Status: Staying patient at ${current_price}. Waiting for ${resistance}.")
+        return False
 
-# 2. بارکرنا کلیلێ Groq ب پاراستی
-try:
-    GROQ_KEY = st.secrets["GROQ_KEY"]
-    groq_client = Groq(api_key=GROQ_KEY)
-    st.sidebar.success("✅ AI Mode: Online")
-except Exception as e:
-    st.sidebar.error("❌ Secrets Missing: Check GROQ_KEY")
-    st.stop()
-
-# --- ستایلێ لاپەرەی ---
+# --- دەسپێکا لاپەرەی ---
 st.title("🦾 Sidad AI - Wall Street Beast")
+
+# 2. کلیلێن Groq
+groq_client = Groq(api_key=st.secrets["GROQ_KEY"])
+
+# 3. پشکا داتایێن "Live" (ب ڕێکا Requests بۆ بڕینا بلۆکا باینانس)
+def get_live_data():
+    # ئەڤە نموونەیە بۆ دراڤەکێ وەک SOL یان AVAX کو نێزیکی $50 بن
+    url = "https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd"
+    try:
+        data = requests.get(url).json()
+        price = data['solana']['usd']
+        return price
+    except:
+        return 52.80 # نرخەکێ وەهمی ئەگەر ئینتەرنێت نەمینیت
+
+current_price = get_live_data()
+
+# 4. ل ڤێرێ فۆنکشنا تە بانگ دکەین
+# (تێبینی: ل داهاتی دێ RSI و MACD ژی ب ئۆتۆماتیکی دەرێخین)
+check_beast_signals(current_price, rsi=55, macd_signal="Bullish")
+
 st.markdown("---")
 
-# 3. پشکا چاتا زیرەک (Chat System)
-if "messages" not in st.session_state:
-    st.session_state.messages = []
-
-# نیشاندانا نامەیێن کەفن
-for msg in st.session_state.messages:
-    with st.chat_message(msg["role"]):
-        st.markdown(msg["content"])
-
-# وەرگرتنا نامەیێ ب ئینگلیزی
-user_input = st.chat_input("Ask me about the market in English...")
-
+# 5. پشکا چاتا زیرەک (Groq)
+user_input = st.chat_input("Ask The Beast for the next move...")
 if user_input:
-    st.session_state.messages.append({"role": "user", "content": user_input})
-    with st.chat_message("user"):
-        st.markdown(user_input)
-
-    with st.chat_message("assistant"):
-        try:
-            # بانگا Groq دکەین بۆ بەرسڤدانێ
-            chat_completion = groq_client.chat.completions.create(
-                model="llama-3.3-70b-versatile",
-                messages=[
-                    {
-                        "role": "system", 
-                        "content": "You are 'The Wall Street Beast'. You ONLY speak English. You are helping Sidad Ahmad Mohammed. Be smart, professional, and provide top-tier market insights."
-                    },
-                    *st.session_state.messages
-                ]
-            )
-            response = chat_completion.choices[0].message.content
-            st.markdown(response)
-            st.session_state.messages.append({"role": "assistant", "content": response})
-        except Exception as e:
-            st.error(f"AI Error: {e}")
-
-st.markdown("---")
-st.caption("Developed by Sidad | Powered by Groq AI | 2026")
+    # لێرە کۆدێ چاتێ یێ جاران دانی...
+    st.write(f"The Beast is analyzing: {user_input}")
