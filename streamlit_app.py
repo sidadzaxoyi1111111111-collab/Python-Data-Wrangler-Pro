@@ -2,17 +2,22 @@ import streamlit as st
 from groq import Groq
 import os
 
-# --- ڕێکخستنا Groq ---
-# سداد برا، ل ڤێرە کلیلا خۆ یا Groq دابنێ
-client = Groq(api_key="لێرە_کلیلێ_Groq_دابنێ")
+# --- خواندنا کلیلێ ژ Secrets ب شێوەیەکێ پاراستی ---
+try:
+    # ل ڤێرە ناڤێ کلیلێ د Secrets دا پێدڤییە "GROQ_API_KEY" بیت
+    api_key = st.secrets["GROQ_API_KEY"]
+    client = Groq(api_key=api_key)
+except Exception as e:
+    st.error("سداد برا، کلیل د پشکا Secrets دا نەهاتییە دیتن! تکایە ناڤێ وێ ب دروستی بنڤیسە.")
+    st.stop()
 
-st.set_page_config(page_title="Sidad AI - Groq Mode", layout="centered")
+st.set_page_config(page_title="Sidad AI - WhatsApp Style", layout="centered")
 st.title("Sidad AI - Groq Powered ⚡")
 
 if "chat_history" not in st.session_state:
     st.session_state.chat_history = []
 
-# --- نیشاندانا نامەیان ب شێوازێ واتس ئەپ ---
+# --- نیشاندانا نامەیان (واتس ئەپ) ---
 for chat in st.session_state.chat_history:
     align = "right" if chat["role"] == "user" else "left"
     bg_color = "#dcf8c6" if chat["role"] == "user" else "#ffffff"
@@ -27,13 +32,13 @@ for chat in st.session_state.chat_history:
     """, unsafe_allow_html=True)
 
 # --- جهێ نڤیسینا نامەیێ ---
-user_input = st.chat_input("نامەیا خۆ بنڤیسە...")
+user_input = st.chat_input("نامەیا خۆ لێرە بنڤیسە سداد برا...")
 
 if user_input:
     st.session_state.chat_history.append({"role": "user", "content": user_input})
     
     try:
-        # داخوازکرنا بەرسڤێ ژ Groq (Llama 3)
+        # داخوازکرنا بەرسڤێ ژ مۆدێلا Llama 3 یا خێرا
         completion = client.chat.completions.create(
             model="llama3-8b-8192",
             messages=[
@@ -43,7 +48,7 @@ if user_input:
         )
         bot_response = completion.choices[0].message.content
     except Exception as e:
-        bot_response = "ببۆره سداد برا، کێشەیەک د کلیلا Groq دا هەیە!"
+        bot_response = f"خەلەتیەک چێبوو: {str(e)}"
 
     st.session_state.chat_history.append({"role": "assistant", "content": bot_response})
     st.rerun()
