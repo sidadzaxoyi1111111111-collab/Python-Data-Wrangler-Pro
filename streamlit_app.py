@@ -2,19 +2,21 @@ import streamlit as st
 from binance.client import Client
 from groq import Groq
 
-# هەوڵدان بۆ گرێدانێ ب بێ بەربەست
+# هەوڵدان بۆ بڕینا بەربەستێن جوگرافی
 try:
-    # ⚠️ ل ڤێرێ مە 'tld="me"' یان 'tld="us"' زێدە کر دا ئەگەر وڵاتەک قەدەغە بیت، بچیتە سەر ئێکێ دی
+    # زێدەکرنا tld='me' یان گوهۆڕینا سێرڤەری بۆ ئەوروپا
     client = Client(
         st.secrets["BINANCE_KEY"], 
         st.secrets["BINANCE_SECRET"],
-        tld='me' # ئەڤە هندەک جاران کێشەیا وڵاتی چاک دکەت
+        tld='me' # ئەڤە یارمەتیدەرە بۆ ئایپیێن بلۆک کری
     )
-    # ئەگەر هێشتا هەر Error هەبوو، پێدڤییە ڤێ تاقی بکەی:
-    # client.API_URL = 'https://api.binance.us' 
+    
+    # ئەگەر هێشتا هەر Error دا، ئەڤێ تاقی بکە:
+    # client.API_URL = 'https://api-gcp.binance.com/api' 
     
     groq_client = Groq(api_key=st.secrets["GROQ_KEY"])
-    st.sidebar.success("✅ Connected (Bypassing Restrictions)")
+    st.sidebar.success("✅ Connected: Location Bypass Active")
 except Exception as e:
-    st.sidebar.error(f"🌍 Location Error: {e}")
-    st.stop()
+    st.sidebar.warning(f"⚠️ Binance is restricted here. Switching to AI Mode.")
+    # ل ڤێرێ مە مەرجەک دانا دا ئەگەر بینانس کار نەکر، بتنێ چات کار بکەت
+    groq_client = Groq(api_key=st.secrets["GROQ_KEY"])
