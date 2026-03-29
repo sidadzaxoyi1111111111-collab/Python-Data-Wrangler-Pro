@@ -1,34 +1,40 @@
 import streamlit as st
 import os
 
-st.set_page_config(page_title="Sidad AI Chat", page_icon="💬")
-st.title("Sidad AI - Crypto Chat 🚀")
+# ڕێکخستنا سەرەکی یا لاپەڕی
+st.set_page_config(page_title="Sidad AI Chat", layout="centered")
 
-# --- دروستکرنا فۆڵدەرێ هەلگرتنا نامەیان (وەکی مێژوویا چاتی) ---
-if "messages" not in st.session_state:
-    st.session_state.messages = []
+st.title("Sidad AI - WhatsApp Style 💬")
 
-# --- نیشاندانا نامەیێن کۆن (وەکی واتساپ) ---
-for message in st.session_state.messages:
-    with st.chat_message(message["role"]):
-        st.markdown(message["content"])
+# لێرە مێژوویا نامەیان پاشەکەفت دکەین
+if "chat_history" not in st.session_state:
+    st.session_state.chat_history = []
 
-# --- جهێ نڤیسینا نامەیا نوی (Chat Input) ---
-if prompt := st.chat_input("نامەیا خۆ لێرە بنڤیسە..."):
-    # 1. نیشاندانا نامەیا تە
-    with st.chat_message("user"):
-        st.markdown(prompt)
-    st.session_state.messages.append({"role": "user", "content": prompt})
+# --- نیشاندانا نامەیان ب شێوازێ واتس ئەپ ---
+for chat in st.session_state.chat_history:
+    if chat["role"] == "user":
+        # نامەیا تە (ل لایێ ڕاست)
+        st.markdown(f"<div style='text-align: right; background-color: #dcf8c6; padding: 10px; border-radius: 10px; margin: 5px; color: black;'><b>تۆ:</b> {chat['content']}</div>", unsafe_allow_html=True)
+    else:
+        # نامەیا بوتێ تە (ل لایێ چەپ)
+        st.markdown(f"<div style='text-align: left; background-color: #ffffff; padding: 10px; border-radius: 10px; border: 1px solid #ddd; margin: 5px; color: black;'><b>بوت:</b> {chat['content']}</div>", unsafe_allow_html=True)
 
-    # 2. وەڵاما بوتێ تە (ل ڤێرە بوت دێ بەرسڤێ دەت)
-    response = f"سداد برا، نامەیا تە گەهشت: {prompt}. ئەز نوکە تەماشەی بازاڕی دکەم..."
-    with st.chat_message("assistant"):
-        st.markdown(response)
-    st.session_state.messages.append({"role": "assistant", "content": response})
+# --- جهێ نڤیسینا نامەیێ (وەکی واتس ئەپ) ---
+with st.container():
+    user_input = st.chat_input("نامەیا خۆ لێرە بنڤیسە سداد برا...")
+    
+    if user_input:
+        # زێدەکرنا نامەیا تە بۆ مێژوویێ
+        st.session_state.chat_history.append({"role": "user", "content": user_input})
+        
+        # دروستکرنا وەڵاما بوتێ تە
+        bot_response = f"نامەیا تە گەهشت سداد: '{user_input}'. ئەز نوکە داتایێن باینانس پشکنین دکەم..."
+        st.session_state.chat_history.append({"role": "bot", "content": bot_response})
+        
+        # دووبارە ڕەنکرنا لاپەڕی دا نامەیێن نوی دیار بن
+        st.rerun()
 
-# --- نیشاندانا وێنەی (ئەگەر هەبیت) ---
-st.sidebar.subheader("📊 چارتێ بازاڕی")
+# --- نیشاندانا وێنەی ل خوارێ ---
+st.divider()
 if os.path.exists("chart.png"):
-    st.sidebar.image("chart.png", caption="SOL/USDT")
-else:
-    st.sidebar.warning("وێنەیێ chart.png ل سەر GitHub نینە.")
+    st.image("chart.png", caption="چارتێ بازاڕی یێ SOL")
