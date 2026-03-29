@@ -1,80 +1,70 @@
 import streamlit as st
 from groq import Groq
 
-# 1. Secure API Connection
+# 1. گرێدانا کلیلێ ب پاراستی
 client = Groq(api_key=st.secrets["GROQ_API_KEY"])
 
-# Page Configuration for a Professional Look
-st.set_page_config(page_title="Sidad AI - Beast Mode", page_icon="📈")
+st.set_page_config(page_title="Sidad AI - Hybrid Beast", page_icon="⚡")
 
 st.title("🤖 Sidad AI - Wall Street Beast")
 st.markdown("---")
 
-# 2. Define the Brain (Llama 3.3 70B Versatile)
 MODEL = "llama-3.3-70b-versatile"
 
-def analyze_trade(buy_price, current_price, quantity):
-    # Standard Binance Fee is usually 0.1%
-    fee_rate = 0.001 
-    
-    investment = buy_price * quantity
-    current_value = current_price * quantity
-    
-    # Calculate Fees for both Buying and Selling
-    total_fees = (investment * fee_rate) + (current_value * fee_rate)
-    
-    net_profit = current_value - investment - total_fees
-    profit_percentage = (net_profit / investment) * 100
-
-    # Professional Prompt for the AI
-    prompt = f"""
-    Analysis Request for Sidad Ahmad:
-    - Buy Price: {buy_price}
-    - Current Price: {current_price}
-    - Quantity: {quantity}
-    - Net Profit (after 0.1% fees): {net_profit:.2f}
-    - Profit Percentage: {profit_percentage:.2f}%
-    
-    Strict Rule: Answer ONLY in English. Be a professional aggressive trader. 
-    Decide: SELL, HOLD, or BUY MORE.
-    """
-
-    try:
-        completion = client.chat.completions.create(
-            model=MODEL,
-            messages=[
-                {"role": "system", "content": "You are a professional Wall Street analyst. Strictly English only. No other languages allowed."},
-                {"role": "user", "content": prompt}
-            ]
-        )
-        return net_profit, profit_percentage, completion.choices[0].message.content
-    except Exception as e:
-        return None, None, f"Error: {e}"
-
-# 3. User Interface (The Calculator)
+# --- پشکێ ئێکێ: حیسابکەرا بازاری (The Calculator) ---
+st.subheader("📊 Trade Calculator")
 col1, col2, col3 = st.columns(3)
 with col1:
-    buy_p = st.number_input("Buy Price (USD)", min_value=0.0)
+    buy_p = st.number_input("Buy Price (USD)", min_value=0.0, step=0.01)
 with col2:
-    curr_p = st.number_input("Current Price (USD)", min_value=0.0)
+    curr_p = st.number_input("Current Price (USD)", min_value=0.0, step=0.01)
 with col3:
-    qty = st.number_input("Quantity", min_value=0.0)
+    qty = st.number_input("Quantity", min_value=0.0, step=0.0001)
 
 if st.button("RUN BEAST ANALYSIS"):
     if buy_p > 0 and curr_p > 0 and qty > 0:
-        net, percent, advice = analyze_trade(buy_p, curr_p, qty)
+        investment = buy_p * qty
+        current_val = curr_p * qty
+        # حیسابکرنا پارێ بینانسێ 0.1%
+        net_profit = current_val - investment - (current_val * 0.001) 
+        profit_pct = (net_profit / investment) * 100
         
-        # Color Logic: Green for Profit, Red for Loss
-        if net > 0:
-            st.success(f"PROFIT CONFIRMED: +${net:.2f} ({percent:.2f}%)")
-            st.balloons()
+        if net_profit > 0:
+            st.success(f"PROFIT: +${net_profit:.2f} ({profit_pct:.2f}%)")
         else:
-            st.error(f"LOSS DETECTED: ${net:.2f} ({percent:.2f}%)")
-        
-        st.markdown("### 🧠 AI Strategic Advice:")
-        st.info(advice)
+            st.error(f"LOSS: ${net_profit:.2f} ({profit_pct:.2f}%)")
     else:
-        st.warning("Please enter all trade details, Sidad.")
+        st.warning("Please enter all trade details above, Sidad.")
 
 st.markdown("---")
-st.caption("Powered by Groq Llama-3.3 | Built for Sidad Ahmad Mohammed")
+
+# --- پشکێ دووێ: چاتا ئینگلیزی (Strictly English Chat) ---
+st.subheader("💬 Ask the Beast")
+
+if "messages" not in st.session_state:
+    st.session_state.messages = []
+
+# پیشاندانا نامێن کۆن
+for message in st.session_state.messages:
+    with st.chat_message(message["role"]):
+        st.markdown(message["content"])
+
+# وەرگرتنا پرسیارێن تە ب ئینگلیزی
+if prompt := st.chat_input("Ask me anything about the market..."):
+    st.session_state.messages.append({"role": "user", "content": prompt})
+    with st.chat_message("user"):
+        st.markdown(prompt)
+
+    with st.chat_message("assistant"):
+        completion = client.chat.completions.create(
+            model=MODEL,
+            messages=[
+                {"role": "system", "content": "You are a professional Wall Street trader. Answer ONLY in English. Be aggressive and smart."},
+                *st.session_state.messages
+            ]
+        )
+        response = completion.choices[0].message.content
+        st.markdown(response)
+        st.session_state.messages.append({"role": "assistant", "content": response})
+
+st.caption("Built for Sidad Ahmad Mohammed | Powered by Groq")
