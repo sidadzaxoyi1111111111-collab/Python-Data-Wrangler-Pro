@@ -1,15 +1,27 @@
-if prompt := st.chat_input("What is the trend for BTC today?"):
-    st.session_state.messages.append({"role": "user", "content": prompt})
+# --- پشکا چاتا زیرەک (Beast AI Chat) ---
+st.subheader("💬 Ask the Beast")
+
+if "messages" not in st.session_state:
+    st.session_state.messages = []
+
+for msg in st.session_state.messages:
+    with st.chat_message(msg["role"]):
+        st.markdown(msg["content"])
+
+# گوهۆڕینا نڤیسینێ بۆ شێوازەکێ سادەتر دا تووشی Error نەبی
+user_input = st.chat_input("What is the trend for BTC today?")
+
+if user_input:
+    st.session_state.messages.append({"role": "user", "content": user_input})
     with st.chat_message("user"):
-        st.markdown(prompt)
+        st.markdown(user_input)
 
     with st.chat_message("assistant"):
         try:
-            # ل ڤێرێ بانگا Groq دکەین بۆ بەرسڤدانێ
             chat_completion = groq_client.chat.completions.create(
                 model="llama-3.3-70b-versatile",
                 messages=[
-                    {"role": "system", "content": "You are 'The Wall Street Beast', a world-class crypto trader. You are helping Sidad Ahmad Mohammed. Be smart, aggressive, and provide real insights in English."},
+                    {"role": "system", "content": "You are 'The Wall Street Beast', a world-class crypto trader helping Sidad Ahmad Mohammed. Be smart and aggressive in English."},
                     *st.session_state.messages
                 ]
             )
