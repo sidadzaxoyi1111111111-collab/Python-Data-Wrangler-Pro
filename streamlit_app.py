@@ -7,8 +7,8 @@ client = Groq(api_key=api_key)
 
 st.title("🤖 Sidad AI - English & Badini")
 
-# ٢. مۆدێلێ هەرە ب هێز یێ Groq
-MODEL = "llama-3.3-70b-specdec"
+# ٢. مۆدێلێ نوو و جێگیر
+MODEL = "llama-3.3-70b-versatile"
 
 def sidad_chat(user_text):
     try:
@@ -17,11 +17,7 @@ def sidad_chat(user_text):
             messages=[
                 {
                     "role": "system", 
-                    "content": """
-                    You are Sidad AI. Answer the user in both English and Kurdish (Badini dialect). 
-                    Always provide the English version first, then the Badini version. 
-                    Be smart, helpful, and friendly.
-                    """
+                    "content": "You are Sidad AI. Always reply in English followed by the Kurdish Badini dialect. Be smart and professional."
                 },
                 {"role": "user", "content": user_text}
             ]
@@ -34,19 +30,17 @@ def sidad_chat(user_text):
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-# پیشاندانا نامێن کۆن
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-# وەرگرتنا نامەیا نوو ژ سدادی
-if prompt := st.chat_input("Write something... تشتەکێ بنڤیسە"):
+if prompt := st.chat_input("Write here... ل ڤێرێ بنڤیسە"):
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
         st.markdown(prompt)
 
     with st.chat_message("assistant"):
-        with st.spinner("Sidad AI is thinking... سداد یا یێ دبنیت"):
+        with st.spinner("Sidad AI is processing..."):
             response = sidad_chat(prompt)
             st.markdown(response)
             st.session_state.messages.append({"role": "assistant", "content": response})
