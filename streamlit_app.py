@@ -5,12 +5,16 @@ from PIL import Image
 # ١. ڕێکخستنا لاپەرەی بۆ سداد
 st.set_page_config(page_title="Sidad AI Agent", page_icon="🤖")
 
-# ٢. خویندنا کلیلێ ب شێوەیەکێ پاراستی
+# ٢. خویندنا کلیلێ ب شێوەیەکێ پاراستی ژ Secrets
 try:
-    api_key = st.secrets["GEMINI_API_KEY"]
-    genai.configure(api_key=api_key)
-except KeyError:
-    st.error("سداد برا، کلیل د ناڤ Secrets دا نینە!")
+    if "GEMINI_API_KEY" in st.secrets:
+        api_key = st.secrets["GEMINI_API_KEY"]
+        genai.configure(api_key=api_key)
+    else:
+        st.error("سداد برا، کلیل د ناڤ Secrets دا نینە! ناڤێ وێ بکە: GEMINI_API_KEY")
+        st.stop()
+except Exception as e:
+    st.error(f"کێشەیەک د Secrets دا هەیە: {e}")
     st.stop()
 
 # ٣. دیزاینێ سەرەکی
@@ -23,28 +27,39 @@ with st.sidebar:
     uploaded_file = st.file_uploader("وێنەیەکێ هەڵبژێرە...", type=["jpg", "png", "jpeg"])
     st.info("سداد، تو ٢٥ سالی و ل زاخۆ یی. ئەڤ بوتە یێ پاراستییە.")
 
-# ٥. بەکارهێنانا مۆدێلێ Stable (ئەڤە خەلەتییا 404 نادەت)
-# ل ڤێرە مە ناڤ کورت کر دا کو ب دروستی کار بکت
+# ٥. ناساندنا مۆدێلی ب شێوەیەکێ مسۆگەر
+# مە ناڤێ مۆدێلی کرە 'gemini-1.5-flash' چونکی باوەرپێکریترینە
 model = genai.GenerativeModel('gemini-1.5-flash')
 
-# ٦. وەرگرتنا رسالێ
+# ٦. مێژوویا چاتی (دا چات بەرزە نەبیت)
+if "messages" not in st.session_state:
+    st.session_state.messages = []
+
+for message in st.session_state.messages:
+    with st.chat_message(message["role"]):
+        st.markdown(message["content"])
+
+# ٧. وەرگرتنا رسالێ و بەرسڤدان
 user_input = st.chat_input("تشتەکی ب بێژە برا...")
 
 if user_input:
     with st.chat_message("user"):
-        st.write(user_input)
-    
+        st.markdown(user_input)
+    st.session_state.messages.append({"role": "user", "content": user_input})
+
     with st.chat_message("assistant"):
-        try:
-            if uploaded_file:
-                img = Image.open(uploaded_file)
-                # ناردنا وێنە و دەقی ب پێکڤە
-                response = model.generate_content([user_input, img])
-            else:
-                # ناردنا دەقی بتنێ ب زمانێ بادینی
-                full_prompt = f"بەرسڤێ ب زمانێ بادینی بدە: {user_input}"
-                response = model.generate_content(full_prompt)
-            
-            st.write(response.text)
-        except Exception as e:
-            st.error(f"خەلەتییەک چێ بوو: {e}")
+        with st.spinner("Sidad AI یا یێ فکریە..."):
+            try:
+                if uploaded_file:
+                    img = Image.open(uploaded_file)
+                    response = model.generate_content([user_input, img])
+                else:
+                    # مەجبورکرنا بوتێ دا ب بادینی بەرسڤ بدەت
+                    full_prompt = f"بەرسڤێ ب زمانێ بادینی بدە: {user_input}"
+                    response = model.generate_content(full_prompt)
+                
+                bot_response = response.text
+                st.markdown(bot_response)
+                st.session_state.messages.append({"role": "assistant", "content": bot_response})
+            except Exception as e:
+                st.error(f"خەلەتییەک چێ بوو: {e}")
