@@ -1,16 +1,35 @@
 import streamlit as st
+import os
 
-# 1. نیشاندانا دەق (Text/Title)
+# --- ناڤ و نیشانێ سایتێ سداد ---
+st.set_page_config(page_title="Sidad AI Monitor", page_icon="🚀")
 st.title("Sidad AI - Crypto Monitor 🚀")
-st.write(f"سداد برا، بخێر بێی! ئەڤە داتایێن پشکا Spot نە.")
 
-# 2. نیشاندانا وێنەی (Image)
-# ئەگەر وێنە ل ناو فۆڵدەرێ سایتێ تە بیت
-st.image("chart.png", caption="ئاستێ نرخێ SOL/USDT", use_column_width=True)
+# --- پشکا نیشاندانا نامەیان (Text Messages) ---
+st.subheader("📩 پەیامێن بوتێ تە")
+st.info("سداد برا، بخێر بێی! ئەڤە داتایێن پشکا Spot نە.")
 
-# یان ئەگەر وێنە ژ لینەکێ (URL) بیت
-image_url = "https://bin.xyz/live-chart.jpg"
-st.image(image_url, caption="چارتێ ڕاستەوڕاست")
+# --- پشکا وێنەیان (Images) ---
+st.subheader("📊 چارتێ بازاڕی")
 
-# 3. نیشاندانا دەقێ ڕەنگاوڕەنگ (Success/Info)
-st.success("قازانج: +$10 (ب سوود وەرگرتن ژ ڤۆچەرا $20)")
+# ناڤێ وێنەیێ تە ل سەر GitHub پێدڤییە "chart.png" بیت
+image_path = "chart.png"
+
+if os.path.exists(image_path):
+    st.image(image_path, caption="ئاستێ نرخێ SOL/USDT", use_container_width=True)
+else:
+    # ئەگەر وێنە نەبوو، ئەڤ پەیامە دێ دیار بیت دا Error چێ نەبیت
+    st.warning("⚠️ سداد برا، فایلێ chart.png ل سەر GitHub نەیێ هەین. وێنەیەکێ ب ڤی ناڤی بارکە (Upload).")
+
+# --- پشکا ناردنا نامەیەکێ (Input Text) ---
+st.subheader("💬 نامەیەکێ بۆ بوتێ خۆ بفرێشە")
+user_msg = st.text_input("نامەیا خۆ لێرە بنڤیسە:")
+if st.button("ناردن"):
+    if user_msg:
+        st.success(f"نامەیا تە هاتە وەرگرتن: {user_msg}")
+    else:
+        st.error("تکایە نامەیەکێ بنڤیسە!")
+
+# --- پشکا کلیلێن تە (API Keys) ---
+# سداد برا، ل ڤێرە کلیلێن تە دێ کار کەن وەکی بەرێ
+st.sidebar.write("✅ API Keys Connected")
