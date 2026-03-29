@@ -1,110 +1,90 @@
 import streamlit as st
 import requests
-from groq import Groq
 import telebot
 import ccxt
+from groq import Groq
 
-# --- 1. تنظیمات و خویندنا کلیلان ژ Secrets ---
+# --- 1. خویندنا کلیلان و تنظیمات ---
 try:
-    GROQ_API_KEY = st.secrets["GROQ_KEY"]
-    T_TOKEN = st.secrets["TELEGRAM_TOKEN"]
-    T_ID = int(st.secrets["TELEGRAM_CHAT_ID"])
     B_KEY = st.secrets["BINANCE_KEY"]
     B_SECRET = st.secrets["BINANCE_SECRET"]
+    T_TOKEN = st.secrets["TELEGRAM_TOKEN"]
+    T_ID = st.secrets["TELEGRAM_CHAT_ID"]
+    G_KEY = st.secrets["GROQ_KEY"]
 
-    # دەسپێکرنا بوتێ تێلێگرامێ و مێشکێ AI
     bot = telebot.TeleBot(T_TOKEN)
-    client = Groq(api_key=GROQ_API_KEY)
-
-    # گرێدانا باینانس ب ڕێکا ccxt
     exchange = ccxt.binance({
         'apiKey': B_KEY,
         'secret': B_SECRET,
         'enableRateLimit': True,
+        'options': {'defaultType': 'spot'}
     })
+    client = Groq(api_key=G_KEY)
 except Exception as e:
-    st.error(f"❌ Setup Error: {e}. Check your Streamlit Secrets!")
+    st.error(f"❌ Configuration Error: {e}")
     st.stop()
 
-# --- 2. فۆنکشنێن هاریکار (Helper Functions) ---
+# --- 2. فۆنکشنێن ئاگەهداری و بازار (Core Functions) ---
 
 def send_alert(msg):
     """فرێکرنا نامەیێ بۆ تێلێگراما سدادی"""
     try:
         bot.send_message(T_ID, msg)
-    except Exception as e:
-        st.sidebar.error(f"Telegram Error: {e}")
+    except: pass
 
-def get_live_price():
-    """خویندنا بهایێ SOL ب شێوەیەکێ پاراستی (چارەسەریا KeyError)"""
-    url = "https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd"
+def get_price():
+    """خویندنا بهایێ SOL ب شێوەیەکێ پاراستی"""
     try:
-        response = requests.get(url, timeout=10)
-        data = response.json()
-        if 'solana' in data and 'usd' in data['solana']:
-            return data['solana']['usd']
-        else:
-            return 180.50 # نرخەکێ نێزیکی بازاڕی وەک Fallback
-    except:
-        return 180.50 # ئەگەر ئینتەرنێت نەبوو
+        url = "https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd"
+        return requests.get(url, timeout=10).json()['solana']['usd']
+    except: return 180.50
 
-def execute_buy(symbol, amount_usd=15):
-    """کڕینا دراڤی ب شێوەیەکێ ئۆتۆماتیک ل سەر باینانس"""
+# --- 3. لۆجیکێ تداولێ یێ زیرەک (Smart Trading) ---
+
+st.set_page_config(page_title="Sidad AI Beast", page_icon="🦾")
+st.title("🦾 Sidad AI - The Ultimate Profit Beast")
+st.caption("Strategy: Automatic Profit Taking & Stop Loss | Developed by Sidad")
+
+current_p = get_price()
+st.metric("Live SOL Price", f"${current_p}")
+
+# دیارکرنا ئاستێن قازانج و خوسارەتیێ
+st.sidebar.header("📈 Strategy Settings")
+entry_p = 150.00 # بهایێ تە پێ کڕی
+tp_level = 210.00 # ئارمانجا قازانجی (Take Profit)
+sl_level = 140.00 # ڕاگرتنا خوسارەتیێ (Stop Loss)
+
+st.sidebar.write(f"Entry: ${entry_p}")
+st.sidebar.success(f"Take Profit: ${tp_level}")
+st.sidebar.error(f"Stop Loss: ${sl_level}")
+
+# --- 4. جێبەجێکرنا بڕیارێن ئۆتۆماتیک ---
+
+# ئایا کاتێ قازانجێ یە؟
+if current_p >= tp_level:
+    st.balloons()
     try:
-        order = exchange.create_market_buy_order(symbol, amount_usd)
-        log_msg = f"🔥 BEAST ACTION: Bought {symbol} for ${amount_usd}!"
-        st.success(log_msg)
-        send_alert(log_msg)
-        return order
-    except Exception as e:
-        st.error(f"❌ Trading Failed: {e}")
-        return None
+        # فرۆتنا هەمی SOL یان بۆ وەرگرتنا قازانجی
+        exchange.create_market_sell_order('SOL/USDT', 0.1) 
+        send_alert(f"💰 PROFIT SECURED! Sold SOL at ${current_p}. Sidad, you won this trade!")
+        st.success("Target Hit! Profit Taken.")
+    except Exception as e: st.error(f"Sell Error: {e}")
 
-# --- 3. ڕووکارێ وێبێ (Streamlit UI) ---
-
-st.set_page_config(page_title="Sidad AI - Beast Bot", page_icon="🦾")
-st.title("🦾 Sidad AI - Wall Street Beast")
-st.caption("Developed by Sidad | AI-Powered Trading | 2026")
-
-# نیشاندانا بهایێ لایڤ د سایدبارێ دا
-current_sol = get_live_price()
-st.sidebar.metric("Live SOL Price", f"${current_sol}")
-
-# پشکا تاقیکرنا تێلێگرامێ (Admin Tools)
-st.sidebar.markdown("---")
-st.sidebar.subheader("🛠️ Admin Tools")
-if st.sidebar.button("📤 Send Test Message"):
-    send_alert("✅ Sidad AI: Connection is ACTIVE!")
-    st.sidebar.success("Test sent to Telegram!")
-
-# مێشکێ بڕیاردانێ (Trading Logic)
-resistance = 53.20
-if current_sol >= resistance:
-    st.warning(f"🚀 Breakout detected at ${current_sol}!")
-    if st.button("Manual Trade: Buy SOL Now"):
-        execute_buy('SOL/USDT')
-
-# --- 4. چاتا زیرەک (Groq AI) ---
-if "messages" not in st.session_state:
-    st.session_state.messages = []
-
-for message in st.session_state.messages:
-    with st.chat_message(message["role"]):
-        st.markdown(message["content"])
-
-if prompt := st.chat_input("Talk to the Beast..."):
-    st.session_state.messages.append({"role": "user", "content": prompt})
-    with st.chat_message("user"):
-        st.markdown(prompt)
-
+# ئایا بازاڕ یێ مەترسیدارە؟ (Stop Loss)
+elif current_p <= sl_level:
     try:
-        completion = client.chat.completions.create(
-            model="llama-3.3-70b-versatile",
-            messages=[{"role": "system", "content": "You are the Wall Street Beast. Expert trader for Sidad."}, {"role": "user", "content": prompt}]
-        )
-        response = completion.choices[0].message.content
-        with st.chat_message("assistant"):
-            st.markdown(response)
-        st.session_state.messages.append({"role": "assistant", "content": response})
-    except Exception as e:
-        st.error(f"AI Error: {e}")
+        # فرۆتن بۆ ڕاگرتنا خوسارەتیێ
+        exchange.create_market_sell_order('SOL/USDT', 0.1)
+        send_alert(f"🛑 STOP LOSS TRIGGERED! Sold at ${current_p} to protect your capital, Sidad.")
+        st.warning("Stop Loss Hit. Capital Protected.")
+    except Exception as e: st.error(f"Exit Error: {e}")
+
+# --- 5. چاتا AI بۆ شیرەتێن بازاڕی ---
+st.markdown("---")
+if prompt := st.chat_input("Ask the Beast about market trends..."):
+    with st.chat_message("user"): st.markdown(prompt)
+    resp = client.chat.completions.create(
+        model="llama-3.3-70b-versatile",
+        messages=[{"role": "system", "content": "You are a professional trader focused on profit for Sidad."}, {"role": "user", "content": prompt}]
+    )
+    with st.chat_message("assistant"): st.markdown(resp.choices[0].message.content)
