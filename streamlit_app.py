@@ -1,34 +1,34 @@
 import streamlit as st
 import requests
 
-# نوکە لینک یێ پاراستییە و ژ Secrets دهێت
-try:
-    SERVER_URL = st.secrets["SERVER_URL"]
-except:
-    st.error("تکایە لینکێ SERVER_URL د ناڤ Secrets دا دابنێ!")
-    st.stop()
+# ئەڤە لینکا تە یا نوو یە
+SERVER_URL = "https://empirical-wants-general-assistance.trycloudflare.com"
 
-st.set_page_config(page_title="Sidad AI", page_icon="🐲")
-st.title("Sidad AI 🐲")
+st.set_page_config(page_title="Sidad AI 🐲", page_icon="🐲")
+st.title("Sidad AI (Mîşkê Drinde) 🐲")
 
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-for message in st.session_state.messages:
-    with st.chat_message(message["role"]):
-        st.markdown(message["content"])
+for msg in st.session_state.messages:
+    with st.chat_message(msg["role"]):
+        st.markdown(msg["content"])
 
-if prompt := st.chat_input("سداد، تشتەکێ بنڤیسە..."):
+if prompt := st.chat_input("پسیارەکێ ژ بوتێ دڕندە بکە..."):
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
         st.markdown(prompt)
 
     with st.chat_message("assistant"):
         try:
-            payload = {"model": "sidad-brain", "prompt": prompt, "stream": False}
-            response = requests.post(f"{SERVER_URL}/api/generate", json=payload, timeout=60)
-            full_response = response.json().get('response', 'بەرسڤ نەهات!')
-            st.markdown(full_response)
-            st.session_state.messages.append({"role": "assistant", "content": full_response})
-        except:
-            st.error("پەیوەندی ب مۆبایلێ نەکەت! دڵنیا ببە Ollama و Cloudflared کار دکەن.")
+            # پەیوەندی دگەل مۆبایلا سدادی (Ollama)
+            res = requests.post(
+                f"{SERVER_URL}/api/generate", 
+                json={"model": "sidad-brain", "prompt": prompt, "stream": False},
+                timeout=60
+            )
+            ans = res.json().get('response', 'مێشکێ دڕندە بەرسڤ نەدا!')
+            st.markdown(ans)
+            st.session_state.messages.append({"role": "assistant", "content": ans})
+        except Exception as e:
+            st.error("تێرمۆکس یێ ڤەمراندییە یان لینک یا ئێکسپایەر بوویە!")
