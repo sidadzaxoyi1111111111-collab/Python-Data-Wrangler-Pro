@@ -1,8 +1,12 @@
 import streamlit as st
 import requests
 
-# ئەڤە ئەو لینکەیە کو تو لێ دگەڕێی (URL)
-SERVER_URL = "https://mpeg-library-diameter-ways.trycloudflare.com"
+# نوکە لینک یێ پاراستییە و ژ Secrets دهێت
+try:
+    SERVER_URL = st.secrets["SERVER_URL"]
+except:
+    st.error("تکایە لینکێ SERVER_URL د ناڤ Secrets دا دابنێ!")
+    st.stop()
 
 st.set_page_config(page_title="Sidad AI", page_icon="🐲")
 st.title("Sidad AI 🐲")
