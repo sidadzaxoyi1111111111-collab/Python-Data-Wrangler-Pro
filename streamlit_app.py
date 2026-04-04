@@ -6,19 +6,18 @@ import json
 st.set_page_config(page_title="Sidad AI Pro Agent", page_icon="🤖", layout="centered")
 
 # --- 2. وەرگرتنا کلیلێ ژ Secrets ---
-# ل دێشبۆردێ Streamlit د پشکا Secrets دا بنڤێسە: OPENROUTER_API_KEY = "کلیل"
-if "OPENROUTER_API_KEY" in st.secrets:
-    API_KEY = st.secrets["OPENROUTER_API_KEY"]
+if "GROQ_API_KEY" in st.secrets:
+    API_KEY = st.secrets["GROQ_API_KEY"]
 else:
-    st.error("کلیل د Secrets دا نەهاتییە دیتن! تکایە کلیلێ ل دێشبۆردێ Streamlit زێدە بکە.")
+    st.error("کلیل د Secrets دا نەهاتییە دیتن! تکایە کلیلێ ب ناڤێ GROQ_API_KEY زێدە بکە.")
     st.stop()
 
-# --- 3. ناڤنیشان و ستایل ---
+# --- 3. دیزاینا دەرڤە ---
 st.title("🤖 Sidad AI Pro Agent")
 st.markdown("---")
-st.info("بخێر بێی بۆ بۆتێ من یێ نوی یێ بهێز! ئەڤە پڕۆژێ من یێ پایتۆنە.")
+st.info("بخێر بێی بۆ بۆتێ من یێ نوی! ئەڤە پڕۆژێ منە کو ب تەکنۆلۆژییا Groq کار دکەت.")
 
-# --- 4. دروستکرنا بیردانکا چاتی (Chat History) ---
+# --- 4. دروستکرنا بیردانکا چاتی ---
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
@@ -27,27 +26,24 @@ for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-# --- 5. وەرگرتنا نامەیا نوی ژ بەکارهێنەری ---
+# --- 5. وەرگرتنا نامەیا نوی ---
 if prompt := st.chat_input("پسیارا تە چییە سداد؟"):
-    # زێدەکرنا نامەیا تە بۆ لیستێ
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
         st.markdown(prompt)
 
-    # --- 6. پەیوەندی ب OpenRouter API ---
+    # --- 6. پەیوەندی ب Groq API ---
     with st.chat_message("assistant"):
-        url = "https://openrouter.ai/api/v1/chat/completions"
+        # لینکا فەرمی یا Groq بۆ مۆدێلێن وەک Llama
+        url = "https://api.groq.com/openai/v1/chat/completions"
         
         headers = {
             "Authorization": f"Bearer {API_KEY}",
-            "Content-Type": "application/json",
-            "HTTP-Referer": "https://sidad-python-pro.streamlit.app", 
-            "X-Title": "Sidad AI Agent"
+            "Content-Type": "application/json"
         }
         
-        # مۆدێلێ Mistral 7B Instruct کو نوکە کار دکەت و بێبەرامبەرە
         data = {
-            "model": "mistralai/mistral-7b-instruct:free",
+            "model": "llama-3.3-70b-versatile", # مۆدێلێ هەرە بهێز و بەلاش یێ Groq
             "messages": st.session_state.messages
         }
         
@@ -57,15 +53,10 @@ if prompt := st.chat_input("پسیارا تە چییە سداد؟"):
                 
                 if response.status_code == 200:
                     result = response.json()
-                    if 'choices' in result and len(result['choices']) > 0:
-                        full_response = result['choices'][0]['message']['content']
-                        st.markdown(full_response)
-                        # پاشکەفتکرنا بەرسڤێ
-                        st.session_state.messages.append({"role": "assistant", "content": full_response})
-                    else:
-                        st.warning("بەرسڤ هات بەس یا چۆل بوو. سحکە کلیلێ.")
+                    full_response = result['choices'][0]['message']['content']
+                    st.markdown(full_response)
+                    st.session_state.messages.append({"role": "assistant", "content": full_response})
                 else:
-                    # نیشاندانا ئەڕۆرا سێرڤەری ب ڕوونی
                     st.error(f"Error {response.status_code}")
                     st.json(response.json())
                     
@@ -74,4 +65,4 @@ if prompt := st.chat_input("پسیارا تە چییە سداد؟"):
 
 # --- پاشکۆ ---
 st.markdown("---")
-st.caption("Powered by Sidad Ahmed | Computer Science Graduate")
+st.caption("Developed by Sidad Ahmed | Powered by Groq Cloud")
