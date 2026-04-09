@@ -3,20 +3,21 @@ from groq import Groq
 import base64
 
 # --- ڕێکخستنا لاپەڕەی ---
-st.set_page_config(page_title="Sidad AI Vision", page_icon="👁️")
+st.set_page_config(page_title="Sidad AI Master", page_icon="🤖")
 
+# --- وەرگرتنا کلیلێ ---
 client = Groq(api_key=st.secrets["GROQ_API_KEY"])
 
 st.title("🤖 Sidad AI Master")
 
-# --- ل ڤێرێ جهێ وێنەی زێدە بوو (Sidebar) ---
+# --- پشکا وێنەیان (Sidebar) ---
 with st.sidebar:
     st.header("📸 پشکا وێنەیان")
-    uploaded_file = st.file_uploader("وێنەیەکێ ل ڤێرێ بار بکە...", type=["jpg", "jpeg", "png"])
+    uploaded_file = st.file_uploader("وێنەیەکێ هەلبژێرە", type=["jpg", "jpeg", "png"])
     if uploaded_file:
-        st.image(uploaded_file, caption="وێنەیێ بارکری", use_container_width=True)
+        st.image(uploaded_file, caption="وێنەیێ تە", use_container_width=True)
 
-# --- پاراستنا مێژوویا چاتی ---
+# --- مێژوویا چاتی ---
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
@@ -24,45 +25,46 @@ for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-# --- وەرگرتنا نامەیا نوی ---
-if prompt := st.chat_input("چی ل دەف تە هەیە سداد؟"):
+# --- وەرگرتنا نامەیێ ---
+if prompt := st.chat_input("چی ل دەف تە هەیە؟"):
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
         st.markdown(prompt)
 
     with st.chat_message("assistant"):
         try:
-            # ئەگەر وێنە هەبیت، مۆدێلا Vision بکار دئینین
+            # ئەگەر وێنە بارکری بیت
             if uploaded_file:
-                image_data = base64.b64encode(uploaded_file.read()).decode("utf-8")
-                image_url = f"data:image/jpeg;base64,{image_data}"
+                # خواندنا وێنەی ب شێوەیەکێ دروست
+                bytes_data = uploaded_file.getvalue()
+                base64_image = base64.b64encode(bytes_data).decode('utf-8')
                 
-                messages = [
-                    {
-                        "role": "user",
-                        "content": [
-                            {"type": "text", "text": prompt},
-                            {"type": "image_url", "image_url": {"url": image_url}}
-                        ]
-                    }
-                ]
-                model_name = "llama-3.2-11b-vision-preview"
+                response = client.chat.completions.create(
+                    model="llama-3.2-11b-vision-preview",
+                    messages=[
+                        {
+                            "role": "user",
+                            "content": [
+                                {"type": "text", "text": prompt},
+                                {
+                                    "type": "image_url",
+                                    "image_url": {"url": f"data:image/jpeg;base64,{base64_image}"}
+                                }
+                            ]
+                        }
+                    ]
+                )
+                full_response = response.choices[0].message.content
             else:
-                # ئەگەر تەنێ نامە بیت، مۆدێلا ئاسایی بکار دئینین
-                messages = [{"role": "system", "content": "You are Sidad AI Master. Respond in Badini Kurdish."}]
-                for m in st.session_state.messages:
-                    messages.append({"role": m["role"], "content": m["content"]})
-                model_name = "llama-3.3-70b-versatile"
+                # ئەگەر تەنێ نڤیسین بیت
+                response = client.chat.completions.create(
+                    model="llama-3.3-70b-versatile",
+                    messages=[{"role": "user", "content": prompt}]
+                )
+                full_response = response.choices[0].message.content
+            
+            st.markdown(full_response)
+            st.session_state.messages.append({"role": "assistant", "content": full_response})
 
-            completion = client.chat.completions.create(
-                model=model_name,
-                messages=messages,
-                temperature=0.4
-            )
-            
-            response = completion.choices[0].message.content
-            st.markdown(response)
-            st.session_state.messages.append({"role": "assistant", "content": response})
-            
         except Exception as e:
-            st.error(f"Error: {str(e)}")
+            st.error(f"❌ کێشەیەکا تەکنیکی هەبوو: {str(e)}")
