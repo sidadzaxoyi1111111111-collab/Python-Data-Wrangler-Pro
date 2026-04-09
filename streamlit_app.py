@@ -1,21 +1,38 @@
 import streamlit as st
+from groq import Groq
 
-# ناوۆکەکەی بۆت
-st.title("🤖 English Assistant Bot")
+# --- بانگکرنا کلیلێ ژ Secrets ---
+try:
+    client = Groq(api_key=st.secrets["GROQ_API_KEY"])
+except Exception as e:
+    st.error("⚠️ کلیلا Groq نەهاتییە دیتن! ل Secrets زێدە بکە.")
 
-# بەشی چات
-user_input = st.text_input("Type your message in English:")
+st.title("🤖 Sidad AI Master (Powered by Groq)")
 
-if user_input:
-    # لێکدانەوەی ئینگلیزی (نمونەی سادە)
-    if "hello" in user_input.lower() or "hi" in user_input.lower():
-        st.write("Bot: Hello! How can I help you today?")
-    elif "how are you" in user_input.lower():
-        st.write("Bot: I'm doing great, thank you for asking! How about you?")
-    elif "name" in user_input.lower():
-        st.write("Bot: I'm your English assistant bot!")
-    elif "help" in user_input.lower():
-        st.write("Bot: I can help you with English conversations. Try asking me questions!")
-    else:
-        st.write("Bot: I understand you said something in English. Could you rephrase that?")
- 
+# --- مێشکێ بۆتی ---
+system_prompt = "You are Sidad AI Master. Expert in Kali Linux, CyberSecurity, All Programming languages, and Multi-languages. Answer clearly and technically."
+
+if "messages" not in st.session_state:
+    st.session_state.messages = []
+
+for message in st.session_state.messages:
+    with st.chat_message(message["role"]):
+        st.markdown(message["content"])
+
+if prompt := st.chat_input("فەرموو سداد..."):
+    st.session_state.messages.append({"role": "user", "content": prompt})
+    with st.chat_message("user"):
+        st.markdown(prompt)
+
+    with st.chat_message("assistant"):
+        # ل ڤێرێ Groq وەڵامێ ددەت (زۆر خێرا)
+        chat_completion = client.chat.completions.create(
+            messages=[
+                {"role": "system", "content": system_prompt},
+                *st.session_state.messages
+            ],
+            model="llama-3.3-70b-versatile", # مۆدێلا هەرە ب هێز یا Groq
+        )
+        response = chat_completion.choices[0].message.content
+        st.markdown(response)
+        st.session_state.messages.append({"role": "assistant", "content": response})
