@@ -1,0 +1,28 @@
+name: Recon Lab
+
+on:
+  workflow_dispatch:
+
+  jobs:
+    test-tools:
+        runs-on: ubuntu-latest
+
+            steps:
+                  - uses: actions/checkout@v4
+
+                        - name: Install Go
+                                uses: actions/setup-go@v5
+                                        with:
+                                                  go-version: "1.21"
+
+                                                        - name: Install Tools
+                                                                run: |
+                                                                          go install github.com/projectdiscovery/subfinder/v2/cmd/subfinder@latest
+                                                                                    go install github.com/projectdiscovery/httpx/cmd/httpx@latest
+                                                                                              go install github.com/projectdiscovery/nuclei/v3/cmd/nuclei@latest
+
+                                                                                                    - name: Verify Installation
+                                                                                                            run: |
+                                                                                                                      ~/go/bin/subfinder -version
+                                                                                                                                ~/go/bin/httpx -version
+                                                                                                                                          ~/go/bin/nuclei -version
